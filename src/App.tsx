@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Product, Combo, CartItem, Order, Coupon, Review, AppSettings } from './types';
+import { Product, Combo, CartItem, Order, Coupon, Review, AppSettings, User } from './types';
 import { MOCK_PRODUCTS, MOCK_COMBOS, MOCK_COUPONS, MOCK_REVIEWS, DEFAULT_SETTINGS } from './data/mockData';
 
 // Components
@@ -9,7 +9,6 @@ import { HeroBanner } from './components/HeroBanner';
 import { StoryHighlights } from './components/StoryHighlights';
 import { CombosSection } from './components/CombosSection';
 import { ComboDetailModal } from './components/ComboDetailModal';
-import { ProductCard } from './components/ProductCard';
 import { ProductDetailModal } from './components/ProductDetailModal';
 import { CollegeGirlEdit } from './components/CollegeGirlEdit';
 import { IndianWearSection } from './components/IndianWearSection';
@@ -17,16 +16,36 @@ import { AccessoriesSection } from './components/AccessoriesSection';
 import { ReviewsWall } from './components/ReviewsWall';
 import { InstagramFeed } from './components/InstagramFeed';
 import { CartDrawer } from './components/CartDrawer';
-import { CheckoutModal } from './components/CheckoutModal';
 import { OrderSuccessModal } from './components/OrderSuccessModal';
-import { OrderTrackingModal } from './components/OrderTrackingModal';
 import { AdminDashboard } from './components/AdminDashboard';
 import { WishlistModal } from './components/WishlistModal';
 import { CouponsModal } from './components/CouponsModal';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { Footer } from './components/Footer';
 
+// Dedicated Separate Pages
+import { OrdersPage } from './components/OrdersPage';
+import { PaymentPage } from './components/PaymentPage';
+import { OrderTrackPage } from './components/OrderTrackPage';
+import { AuthPage } from './components/AuthPage';
+
+type View = 'home' | 'orders' | 'payment' | 'track' | 'login' | 'admin';
+
+const getViewFromUrl = (): View => {
+  const path = window.location.pathname.toLowerCase();
+  const hash = window.location.hash.toLowerCase();
+  if (path === '/admin' || hash === '#admin') return 'admin';
+  if (path === '/orders' || hash === '#orders') return 'orders';
+  if (path === '/payment' || hash === '#payment' || path === '/checkout' || hash === '#checkout') return 'payment';
+  if (path === '/track' || hash === '#track') return 'track';
+  if (path === '/login' || hash === '#login' || path === '/profile' || hash === '#profile') return 'login';
+  return 'home';
+};
+
 export const App: React.FC = () => {
+  // Page Navigation View State
+  const [currentView, setCurrentView] = useState<View>(getViewFromUrl);
+
   // Data State
   const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS);
   const [combos, setCombos] = useState<Combo[]>(MOCK_COMBOS);
@@ -34,6 +53,16 @@ export const App: React.FC = () => {
   const [reviews, setReviews] = useState<Review[]>(MOCK_REVIEWS);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [activeCategory, setActiveCategory] = useState<string>('all');
+
+  // Customer Session
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    try {
+      const saved = localStorage.getItem('glamora_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
 
   // Cart & Wishlist State
   const [cartItems, setCartItems] = useState<CartItem[]>(() => {
@@ -59,12 +88,7 @@ export const App: React.FC = () => {
   const [selectedCombo, setSelectedCombo] = useState<Combo | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
-  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const [isTrackingOpen, setIsTrackingOpen] = useState(false);
   const [isCouponsOpen, setIsCouponsOpen] = useState(false);
-  const [isAdminOpen, setIsAdminOpen] = useState(() => {
-    return window.location.pathname === '/admin' || window.location.hash === '#admin';
-  });
   const [activeTrackingId, setActiveTrackingId] = useState('');
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null);
   const [appliedCheckoutCoupon, setAppliedCheckoutCoupon] = useState<Coupon | null>(null);
@@ -80,7 +104,7 @@ export const App: React.FC = () => {
     localStorage.setItem('glamora_wishlist', JSON.stringify(wishlistIds));
   }, [wishlistIds]);
 
-  // Initial Fetch from API & Route Check
+  // Initial Fetch from API
   const refreshData = async () => {
     try {
       const [resProd, resCombo, resCoup, resRev, resSet] = await Promise.all([
@@ -104,15 +128,21 @@ export const App: React.FC = () => {
     refreshData();
 
     const handlePopState = () => {
-      if (window.location.pathname === '/admin' || window.location.hash === '#admin') {
-        setIsAdminOpen(true);
-      } else {
-        setIsAdminOpen(false);
-      }
+      setCurrentView(getViewFromUrl());
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
+
+  const navigateTo = (view: View, trackingId?: string) => {
+    setCurrentView(view);
+    if (trackingId) setActiveTrackingId(trackingId);
+    const targetPath = view === 'home' ? '/' : `/${view}`;
+    if (window.location.pathname !== targetPath) {
+      window.history.pushState(null, '', targetPath);
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -188,24 +218,23 @@ export const App: React.FC = () => {
     setAppliedCheckoutCoupon(coupon);
     setIsGiftWrapSelected(giftWrap);
     setIsCartOpen(false);
-    setIsCheckoutOpen(true);
-  };
-
-  const handleOrderPlaced = (order: Order) => {
-    setCartItems([]);
-    setIsCheckoutOpen(false);
-    setConfirmedOrder(order);
-    refreshData();
-  };
-
-  const handleTrackSpecificOrder = (trackingId: string) => {
-    setActiveTrackingId(trackingId);
-    setIsTrackingOpen(true);
+    navigateTo('payment');
   };
 
   // Category Filtering & Smooth Navigation
   const handleSelectCategory = (cat: string) => {
     setActiveCategory(cat);
+    if (currentView !== 'home') {
+      navigateTo('home');
+      setTimeout(() => {
+        scrollToCat(cat);
+      }, 100);
+    } else {
+      scrollToCat(cat);
+    }
+  };
+
+  const scrollToCat = (cat: string) => {
     if (cat === 'combos' || cat === 'kurti_jeans') {
       const el = document.getElementById('combos-section');
       if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -221,11 +250,11 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-glamora-cream text-glamora-charcoal font-sans flex flex-col pb-16 lg:pb-0 selection:bg-glamora-blush selection:text-glamora-charcoal">
+    <div className="min-h-screen bg-[#FFF9F6] text-glamora-charcoal font-sans flex flex-col pb-28 lg:pb-0 selection:bg-glamora-blush selection:text-glamora-charcoal">
       
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-20 lg:bottom-6 right-6 z-50 bg-glamora-charcoal text-white text-xs font-semibold px-4 py-3 rounded-2xl shadow-elevated border border-glamora-rose animate-slide-up flex items-center gap-2">
+        <div className="fixed bottom-24 lg:bottom-6 right-6 z-50 bg-glamora-charcoal text-white text-xs font-semibold px-4 py-3 rounded-2xl shadow-elevated border border-glamora-rose animate-slide-up flex items-center gap-2">
           <span>{toastMessage}</span>
         </div>
       )}
@@ -233,110 +262,180 @@ export const App: React.FC = () => {
       {/* Top Announcement Bar */}
       <AnnouncementBar onOpenCoupons={() => setIsCouponsOpen(true)} />
 
-      {/* Main Luxury Navigation Bar (No user-side admin button) */}
+      {/* Main Luxury Navigation Bar */}
       <Navbar
         cartCount={cartItems.reduce((acc, i) => acc + i.quantity, 0)}
         wishlistCount={wishlistIds.length}
+        currentUser={currentUser}
         onOpenCart={() => setIsCartOpen(true)}
         onOpenWishlist={() => setIsWishlistOpen(true)}
-        onOpenTrackOrder={() => {
-          setActiveTrackingId('');
-          setIsTrackingOpen(true);
-        }}
+        onNavigate={navigateTo}
         onSelectCategory={handleSelectCategory}
         activeCategory={activeCategory}
         allProducts={products}
         onSelectProduct={(p) => setSelectedProduct(p)}
-      />
-
-      <main className="flex-1">
-        
-        {/* Full-screen Editorial Hero Banner */}
-        <HeroBanner
-          onShopCombos={() => handleSelectCategory('combos')}
-          onShopIndian={() => handleSelectCategory('indian')}
-          onShopCollege={() => handleSelectCategory('kurti_jeans')}
-        />
-
-        {/* Story Highlights Bar */}
-        <StoryHighlights onSelectCategory={handleSelectCategory} />
-
-        {/* 1. CURATED COMBOS SECTION (SHOWN FIRST ON HOMEPAGE AS REQUESTED) */}
-        <CombosSection
-          combos={combos}
-          onOpenComboModal={(c) => setSelectedCombo(c)}
-          onAddToCart={handleAddToCart}
-          onQuickBuy={(c) => {
-            const item: CartItem = {
-              id: `${c.id}-${Date.now()}`,
-              comboId: c.id,
-              name: c.title,
-              price: c.comboPrice,
-              originalPrice: c.originalTotal,
-              image: c.image,
-              quantity: 1,
-              isCombo: true,
-              comboItems: c.items,
-            };
-            handleAddToCart(item);
-            setIsCartOpen(false);
-            setIsCheckoutOpen(true);
-          }}
-        />
-
-        {/* 2. RAJASTHANI & JAIPUR ETHNIC KURTI COLLECTION (@ ₹499) */}
-        <IndianWearSection
-          products={products}
-          wishlistIds={wishlistIds}
-          onToggleWishlist={handleToggleWishlist}
-          onSelectProduct={(p) => setSelectedProduct(p)}
-          onQuickAdd={handleQuickAddProduct}
-        />
-
-        {/* 3. COLLEGE GIRL SPECIAL (KURTI + BAGGY JEANS & CAMPUS FITS) */}
-        <CollegeGirlEdit
-          products={products}
-          wishlistIds={wishlistIds}
-          onToggleWishlist={handleToggleWishlist}
-          onSelectProduct={(p) => setSelectedProduct(p)}
-          onQuickAdd={handleQuickAddProduct}
-          onViewAllCollege={() => handleSelectCategory('combos')}
-        />
-
-        {/* 4. RAJASTHANI 18K MINAKARI & OXIDISED JHUMKAS SECTION */}
-        <AccessoriesSection
-          products={products}
-          wishlistIds={wishlistIds}
-          onToggleWishlist={handleToggleWishlist}
-          onSelectProduct={(p) => setSelectedProduct(p)}
-          onQuickAdd={handleQuickAddProduct}
-        />
-
-        {/* 5. CUSTOMER REVIEWS WALL */}
-        <ReviewsWall reviews={reviews} />
-
-        {/* 6. INSTAGRAM LOOKBOOK FEED */}
-        <InstagramFeed onShopLook={() => handleSelectCategory('combos')} />
-
-      </main>
-
-      {/* Customer-Facing Footer */}
-      <Footer
-        onSelectCategory={handleSelectCategory}
-        onOpenTrackOrder={() => {
-          setActiveTrackingId('');
-          setIsTrackingOpen(true);
+        onLogout={() => {
+          setCurrentUser(null);
+          localStorage.removeItem('glamora_user');
+          showToast('Logged out successfully');
         }}
       />
+
+      {/* ================= PAGE ROUTING VIEW ================= */}
+      <div className="flex-1">
+        
+        {/* VIEW 1: DEDICATED ORDERS PAGE */}
+        {currentView === 'orders' && (
+          <OrdersPage
+            onBackToHome={() => navigateTo('home')}
+            onTrackOrder={(trackingId) => navigateTo('track', trackingId)}
+            onShopNow={() => navigateTo('home')}
+          />
+        )}
+
+        {/* VIEW 2: DEDICATED PAYMENT & CHECKOUT PAGE */}
+        {currentView === 'payment' && (
+          <PaymentPage
+            cartItems={cartItems}
+            appliedCoupon={appliedCheckoutCoupon}
+            giftWrap={isGiftWrapSelected}
+            settings={settings}
+            currentUser={currentUser}
+            onBackToCart={() => {
+              navigateTo('home');
+              setIsCartOpen(true);
+            }}
+            onOrderSuccess={(order) => {
+              setCartItems([]);
+              setConfirmedOrder(order);
+              navigateTo('orders');
+              refreshData();
+            }}
+            onBackToHome={() => navigateTo('home')}
+          />
+        )}
+
+        {/* VIEW 3: DEDICATED ORDER TRACKING PAGE */}
+        {currentView === 'track' && (
+          <OrderTrackPage
+            initialTrackingId={activeTrackingId}
+            onBackToHome={() => navigateTo('home')}
+            onViewAllOrders={() => navigateTo('orders')}
+          />
+        )}
+
+        {/* VIEW 4: DEDICATED LOGIN / REGISTER / PROFILE PAGE */}
+        {currentView === 'login' && (
+          <AuthPage
+            currentUser={currentUser}
+            onLoginSuccess={(u) => {
+              setCurrentUser(u);
+              navigateTo('home');
+              showToast(`Welcome back, ${u.name}! 🌸`);
+            }}
+            onLogout={() => {
+              setCurrentUser(null);
+              localStorage.removeItem('glamora_user');
+              showToast('Signed out successfully');
+            }}
+            onBackToHome={() => navigateTo('home')}
+            onViewOrders={() => navigateTo('orders')}
+            onViewTrack={() => navigateTo('track')}
+            onViewWishlist={() => {
+              navigateTo('home');
+              setIsWishlistOpen(true);
+            }}
+          />
+        )}
+
+        {/* VIEW 5: HOMEPAGE (EDITORIAL LUXURY COMMERCE) */}
+        {currentView === 'home' && (
+          <main>
+            {/* Full-screen Editorial Hero Banner (No overlap on mobile) */}
+            <HeroBanner
+              onShopCombos={() => handleSelectCategory('combos')}
+              onShopIndian={() => handleSelectCategory('indian')}
+              onShopCollege={() => handleSelectCategory('kurti_jeans')}
+            />
+
+            {/* Story Highlights Bar */}
+            <StoryHighlights onSelectCategory={handleSelectCategory} />
+
+            {/* 1. CURATED COMBOS SECTION (SHOWN FIRST ON HOMEPAGE AS REQUESTED) */}
+            <CombosSection
+              combos={combos}
+              onOpenComboModal={(c) => setSelectedCombo(c)}
+              onAddToCart={handleAddToCart}
+              onQuickBuy={(c) => {
+                const item: CartItem = {
+                  id: `${c.id}-${Date.now()}`,
+                  comboId: c.id,
+                  name: c.title,
+                  price: c.comboPrice,
+                  originalPrice: c.originalTotal,
+                  image: c.image,
+                  quantity: 1,
+                  isCombo: true,
+                  comboItems: c.items,
+                };
+                handleAddToCart(item);
+                setIsCartOpen(false);
+                navigateTo('payment');
+              }}
+            />
+
+            {/* 2. RAJASTHANI & JAIPUR ETHNIC KURTI COLLECTION (@ ₹499) */}
+            <IndianWearSection
+              products={products}
+              wishlistIds={wishlistIds}
+              onToggleWishlist={handleToggleWishlist}
+              onSelectProduct={(p) => setSelectedProduct(p)}
+              onQuickAdd={handleQuickAddProduct}
+            />
+
+            {/* 3. COLLEGE GIRL SPECIAL (KURTI + BAGGY JEANS & CAMPUS FITS) */}
+            <CollegeGirlEdit
+              products={products}
+              wishlistIds={wishlistIds}
+              onToggleWishlist={handleToggleWishlist}
+              onSelectProduct={(p) => setSelectedProduct(p)}
+              onQuickAdd={handleQuickAddProduct}
+              onViewAllCollege={() => handleSelectCategory('combos')}
+            />
+
+            {/* 4. RAJASTHANI 18K MINAKARI & OXIDISED JHUMKAS SECTION */}
+            <AccessoriesSection
+              products={products}
+              wishlistIds={wishlistIds}
+              onToggleWishlist={handleToggleWishlist}
+              onSelectProduct={(p) => setSelectedProduct(p)}
+              onQuickAdd={handleQuickAddProduct}
+            />
+
+            {/* 5. CUSTOMER REVIEWS WALL */}
+            <ReviewsWall reviews={reviews} />
+
+            {/* 6. INSTAGRAM LOOKBOOK FEED */}
+            <InstagramFeed onShopLook={() => handleSelectCategory('combos')} />
+
+            {/* Customer-Facing Footer */}
+            <Footer
+              onSelectCategory={handleSelectCategory}
+              onOpenTrackOrder={() => navigateTo('track')}
+            />
+          </main>
+        )}
+
+      </div>
 
       {/* Mobile-First Bottom Floating App Dock Bar */}
       <MobileBottomNav
         cartCount={cartItems.reduce((acc, i) => acc + i.quantity, 0)}
-        wishlistCount={wishlistIds.length}
+        currentView={currentView}
         activeCategory={activeCategory}
+        onNavigate={navigateTo}
         onSelectCategory={handleSelectCategory}
         onOpenCart={() => setIsCartOpen(true)}
-        onOpenWishlist={() => setIsWishlistOpen(true)}
       />
 
       {/* ================= MODALS & DRAWERS ================= */}
@@ -362,7 +461,8 @@ export const App: React.FC = () => {
         onBuyNow={(item) => {
           handleAddToCart(item);
           setIsCartOpen(false);
-          setIsCheckoutOpen(true);
+          setSelectedProduct(null);
+          navigateTo('payment');
         }}
         allProducts={products}
         onSelectProduct={(p) => setSelectedProduct(p)}
@@ -376,33 +476,16 @@ export const App: React.FC = () => {
         onBuyNow={(item) => {
           handleAddToCart(item);
           setIsCartOpen(false);
-          setIsCheckoutOpen(true);
+          setSelectedCombo(null);
+          navigateTo('payment');
         }}
-      />
-
-      {/* Checkout Modal with Dynamic Admin QR Code & UPI */}
-      <CheckoutModal
-        isOpen={isCheckoutOpen}
-        onClose={() => setIsCheckoutOpen(false)}
-        cartItems={cartItems}
-        appliedCoupon={appliedCheckoutCoupon}
-        giftWrap={isGiftWrapSelected}
-        onOrderPlaced={handleOrderPlaced}
-        settings={settings}
       />
 
       {/* Order Confirmed Celebration Modal */}
       <OrderSuccessModal
         order={confirmedOrder}
         onClose={() => setConfirmedOrder(null)}
-        onTrackOrder={handleTrackSpecificOrder}
-      />
-
-      {/* Order Tracking Modal */}
-      <OrderTrackingModal
-        isOpen={isTrackingOpen}
-        onClose={() => setIsTrackingOpen(false)}
-        initialTrackingId={activeTrackingId}
+        onTrackOrder={(id) => navigateTo('track', id)}
       />
 
       {/* Wishlist Modal */}
@@ -426,11 +509,8 @@ export const App: React.FC = () => {
 
       {/* DEDICATED ADMIN CONTROL HUB (ACCESSIBLE VIA /admin ROUTE) */}
       <AdminDashboard
-        isOpen={isAdminOpen}
-        onClose={() => {
-          setIsAdminOpen(false);
-          window.history.pushState(null, '', '/');
-        }}
+        isOpen={currentView === 'admin'}
+        onClose={() => navigateTo('home')}
         products={products}
         combos={combos}
         settings={settings}

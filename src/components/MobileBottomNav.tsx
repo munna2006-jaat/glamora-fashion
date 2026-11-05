@@ -1,22 +1,22 @@
 import React from 'react';
-import { Home, Sparkles, ShoppingBag, Heart, Layers } from 'lucide-react';
+import { Home, Sparkles, ShoppingBag, Package, Truck, User as UserIcon } from 'lucide-react';
 
 interface MobileBottomNavProps {
   cartCount: number;
-  wishlistCount: number;
+  currentView: 'home' | 'orders' | 'payment' | 'track' | 'login';
   activeCategory: string;
+  onNavigate: (view: 'home' | 'orders' | 'payment' | 'track' | 'login') => void;
   onSelectCategory: (cat: string) => void;
   onOpenCart: () => void;
-  onOpenWishlist: () => void;
 }
 
 export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   cartCount,
-  wishlistCount,
+  currentView,
   activeCategory,
+  onNavigate,
   onSelectCategory,
   onOpenCart,
-  onOpenWishlist,
 }) => {
   return (
     <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-glamora-blush/60 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] px-2 py-1.5 safe-area-pb">
@@ -25,11 +25,14 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         {/* Home */}
         <button
           onClick={() => {
+            onNavigate('home');
             onSelectCategory('all');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
-          className={`flex flex-col items-center py-1 transition ${
-            activeCategory === 'all' ? 'text-glamora-rose font-bold' : 'text-gray-500 hover:text-glamora-charcoal'
+          className={`flex flex-col items-center py-1 transition cursor-pointer ${
+            currentView === 'home' && activeCategory !== 'combos'
+              ? 'text-glamora-rose font-bold'
+              : 'text-gray-500 hover:text-glamora-charcoal'
           }`}
         >
           <Home className="w-5 h-5 mb-0.5" />
@@ -38,9 +41,14 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
 
         {/* Combos */}
         <button
-          onClick={() => onSelectCategory('combos')}
-          className={`flex flex-col items-center py-1 transition relative ${
-            activeCategory === 'combos' ? 'text-glamora-rose font-bold' : 'text-gray-500 hover:text-glamora-charcoal'
+          onClick={() => {
+            onNavigate('home');
+            onSelectCategory('combos');
+          }}
+          className={`flex flex-col items-center py-1 transition relative cursor-pointer ${
+            currentView === 'home' && activeCategory === 'combos'
+              ? 'text-glamora-rose font-bold'
+              : 'text-gray-500 hover:text-glamora-charcoal'
           }`}
         >
           <Sparkles className="w-5 h-5 mb-0.5 text-glamora-gold animate-pulse" />
@@ -50,35 +58,32 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
           </span>
         </button>
 
-        {/* Kurtis */}
+        {/* My Orders */}
         <button
-          onClick={() => onSelectCategory('indian')}
-          className={`flex flex-col items-center py-1 transition ${
-            activeCategory === 'indian' ? 'text-glamora-rose font-bold' : 'text-gray-500 hover:text-glamora-charcoal'
+          onClick={() => onNavigate('orders')}
+          className={`flex flex-col items-center py-1 transition cursor-pointer ${
+            currentView === 'orders' ? 'text-glamora-rose font-bold' : 'text-gray-500 hover:text-glamora-charcoal'
           }`}
         >
-          <Layers className="w-5 h-5 mb-0.5" />
-          <span className="text-[10px] tracking-tight">Kurtis</span>
+          <Package className="w-5 h-5 mb-0.5" />
+          <span className="text-[10px] tracking-tight">Orders</span>
         </button>
 
-        {/* Wishlist */}
+        {/* Track Order */}
         <button
-          onClick={onOpenWishlist}
-          className="flex flex-col items-center py-1 text-gray-500 hover:text-glamora-rose transition relative"
+          onClick={() => onNavigate('track')}
+          className={`flex flex-col items-center py-1 transition cursor-pointer ${
+            currentView === 'track' ? 'text-glamora-rose font-bold' : 'text-gray-500 hover:text-glamora-charcoal'
+          }`}
         >
-          <Heart className="w-5 h-5 mb-0.5" />
-          <span className="text-[10px] tracking-tight">Wishlist</span>
-          {wishlistCount > 0 && (
-            <span className="absolute top-0 right-3 bg-glamora-rose text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
-              {wishlistCount}
-            </span>
-          )}
+          <Truck className="w-5 h-5 mb-0.5" />
+          <span className="text-[10px] tracking-tight">Track</span>
         </button>
 
         {/* Bag */}
         <button
           onClick={onOpenCart}
-          className="flex flex-col items-center py-1 text-glamora-charcoal hover:text-glamora-rose transition relative"
+          className="flex flex-col items-center py-1 text-glamora-charcoal hover:text-glamora-rose transition relative cursor-pointer"
         >
           <div className="relative">
             <ShoppingBag className="w-5 h-5 mb-0.5 text-glamora-charcoal" />
@@ -95,4 +100,3 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     </div>
   );
 };
-

@@ -55,6 +55,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isNewProduct, setIsNewProduct] = useState(false);
   const [editingCombo, setEditingCombo] = useState<Combo | null>(null);
+  const [isNewCombo, setIsNewCombo] = useState(false);
   const [searchFilter, setSearchFilter] = useState('');
   const [saveMessage, setSaveMessage] = useState('');
 
@@ -222,22 +223,74 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
+  // Handle Product Image Upload
+  const handleProductImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editingProduct) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === 'string') {
+        const currentImgs = editingProduct.images || [];
+        setEditingProduct({
+          ...editingProduct,
+          images: [reader.result, ...currentImgs.filter(img => img !== reader.result)]
+        });
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Handle Combo Image Upload
+  const handleComboImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editingCombo) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === 'string') {
+        setEditingCombo({
+          ...editingCombo,
+          image: reader.result
+        });
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   // Handle Combo Save
   const handleSaveCombo = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingCombo) return;
 
     try {
-      const res = await fetch(`/api/admin/combos/${editingCombo.id}`, {
-        method: 'PUT',
+      const url = isNewCombo ? '/api/admin/combos' : `/api/admin/combos/${editingCombo.id}`;
+      const method = isNewCombo ? 'POST' : 'PUT';
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editingCombo)
       });
       if (res.ok) {
-        setSaveMessage('Combo updated successfully!');
+        setSaveMessage(isNewCombo ? 'New Combo created successfully!' : 'Combo updated successfully!');
         setEditingCombo(null);
+        setIsNewCombo(false);
         onRefreshData();
         loadStatsAndOrders();
+        setTimeout(() => setSaveMessage(''), 3000);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // Handle Combo Delete
+  const handleDeleteCombo = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this combo?')) return;
+    try {
+      const res = await fetch(`/api/admin/combos/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setSaveMessage('Combo removed from store.');
+        onRefreshData();
         setTimeout(() => setSaveMessage(''), 3000);
       }
     } catch (e) {
@@ -738,28 +791,68 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             {/* TAB: COMBOS MANAGER */}
             {activeTab === 'combos' && (
               <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
                     <h3 className="font-serif text-lg font-bold text-glamora-charcoal">
                       Curated Rajasthani Combos & Offers ({combos.length})
                     </h3>
-                    <p className="text-xs text-gray-500">Edit combo discount pricing, badge tags, and included items</p>
+                    <p className="text-xs text-gray-500">Edit combo discount pricing, badge tags, upload photos, and create new combos</p>
                   </div>
+                  <button
+                    onClick={() => {
+                      setEditingCombo({
+                        id: `combo-${Date.now()}`,
+                        title: '',
+                        tagline: '',
+                        description: '',
+                        badge: 'SPECIAL COMBO',
+                        image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80',
+                        items: [
+                          {
+                            productId: 'item-1',
+                            name: 'Rajasthani Handblock Kurti',
+                            category: 'Kurti',
+                            individualPrice: 499,
+                            image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80',
+                            availableSizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL']
+                          },
+                          {
+                            productId: 'item-2',
+                            name: '18K Minakari Chandbali Jhumka',
+                            category: 'Accessory',
+                            individualPrice: 399,
+                            image: 'https://images.unsplash.com/photo-1630019852942-f89202989a59?auto=format&fit=crop&w=600&q=80'
+                          }
+                        ],
+                        comboPrice: 499,
+                        originalTotal: 898,
+                        savings: 399,
+                        stock: 50,
+                        rating: 4.9,
+                        reviewsCount: 88,
+                      });
+                      setIsNewCombo(true);
+                    }}
+                    className="bg-glamora-rose hover:bg-glamora-rose-dark text-white text-xs font-bold px-4 py-2.5 rounded-xl transition flex items-center gap-1.5 shadow-sm cursor-pointer self-start sm:self-auto"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Create New Combo</span>
+                  </button>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {combos.map(c => (
                     <div key={c.id} className="p-4 rounded-2xl bg-glamora-cream/40 border border-glamora-blush/60 flex gap-4">
-                      <img src={c.image} alt={c.title} className="w-24 h-28 object-cover rounded-xl" />
+                      <img src={c.image} alt={c.title} className="w-24 h-28 object-cover rounded-xl border border-glamora-blush/60 flex-shrink-0" />
                       <div className="flex-1 min-w-0 flex flex-col justify-between">
                         <div>
-                          <div className="flex justify-between items-start">
-                            <h4 className="font-serif font-bold text-sm text-glamora-charcoal">{c.title}</h4>
-                            <span className="text-[10px] font-bold bg-glamora-rose text-white px-2 py-0.5 rounded-full">{c.badge}</span>
+                          <div className="flex justify-between items-start gap-2">
+                            <h4 className="font-serif font-bold text-sm text-glamora-charcoal truncate">{c.title}</h4>
+                            <span className="text-[10px] font-bold bg-glamora-rose text-white px-2 py-0.5 rounded-full flex-shrink-0">{c.badge}</span>
                           </div>
                           <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">{c.tagline}</p>
-                          <div className="text-[11px] text-gray-500 mt-2">
-                            Included Items: {c.items.map(i => i.name).join(', ')}
+                          <div className="text-[11px] text-gray-500 mt-2 line-clamp-1">
+                            Items: {c.items.map(i => i.name).join(', ')}
                           </div>
                         </div>
 
@@ -768,12 +861,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <span className="font-serif font-bold text-base text-glamora-charcoal">₹{c.comboPrice}</span>
                             <span className="text-xs text-gray-400 line-through ml-2">₹{c.originalTotal}</span>
                           </div>
-                          <button
-                            onClick={() => setEditingCombo(c)}
-                            className="bg-white border border-gray-200 hover:border-glamora-rose px-3 py-1 rounded-xl text-xs font-semibold text-glamora-charcoal cursor-pointer"
-                          >
-                            Edit Pricing & Stock
-                          </button>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => {
+                                setEditingCombo(c);
+                                setIsNewCombo(false);
+                              }}
+                              className="bg-white border border-gray-200 hover:border-glamora-rose px-3 py-1 rounded-xl text-xs font-semibold text-glamora-charcoal cursor-pointer"
+                            >
+                              Edit & Photo
+                            </button>
+                            <button
+                              onClick={() => handleDeleteCombo(c.id)}
+                              className="p-1 hover:bg-red-50 text-gray-400 hover:text-red-600 rounded-lg transition"
+                              title="Delete Combo"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -962,10 +1067,42 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </div>
 
               <div>
-                <label className="block font-semibold text-gray-600 mb-1">Image URL</label>
+                <label className="block font-semibold text-gray-600 mb-1">Product Photo / Image *</label>
+                
+                {/* Photo Preview + Direct File Upload Option */}
+                <div className="flex items-center gap-3 mb-2 p-3 bg-gray-50 border border-gray-200 rounded-2xl">
+                  {editingProduct.images?.[0] ? (
+                    <img
+                      src={editingProduct.images[0]}
+                      alt="Product Preview"
+                      className="w-16 h-20 object-cover rounded-xl border border-glamora-blush shadow-sm flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-16 h-20 rounded-xl bg-gray-200 flex items-center justify-center text-gray-400 flex-shrink-0">
+                      <ImageIcon className="w-6 h-6" />
+                    </div>
+                  )}
+
+                  <div className="flex-1 space-y-1.5">
+                    <label className="inline-flex items-center gap-2 bg-glamora-rose hover:bg-glamora-rose-dark text-white text-xs font-bold px-3.5 py-2 rounded-xl cursor-pointer transition shadow-sm">
+                      <Upload className="w-4 h-4" />
+                      <span>Upload Photo from Phone / PC</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleProductImageUpload}
+                        className="hidden"
+                      />
+                    </label>
+                    <p className="text-[10px] text-gray-500">
+                      Tap above to pick photo from mobile gallery or computer files
+                    </p>
+                  </div>
+                </div>
+
                 <input
                   type="text"
-                  required
+                  placeholder="Or enter Image URL (https://...)"
                   value={editingProduct.images[0] || ''}
                   onChange={(e) => setEditingProduct({ ...editingProduct, images: [e.target.value] })}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 font-mono text-[11px]"
@@ -1013,23 +1150,89 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       )}
 
-      {/* EDIT COMBO MODAL */}
+      {/* EDIT / CREATE COMBO MODAL */}
       {editingCombo && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-lg rounded-3xl p-6 shadow-luxury border border-glamora-blush">
+          <div className="bg-white w-full max-w-lg rounded-3xl p-6 shadow-luxury border border-glamora-blush my-6 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-serif text-lg font-bold text-glamora-charcoal">
-                Edit Combo: {editingCombo.title}
+                {isNewCombo ? 'Create New Curated Combo' : `Edit Combo: ${editingCombo.title}`}
               </h3>
               <button onClick={() => setEditingCombo(null)} className="p-1 text-gray-400 hover:text-glamora-charcoal">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveCombo} className="space-y-3 text-xs">
+            <form onSubmit={handleSaveCombo} className="space-y-3.5 text-xs">
+              <div>
+                <label className="block font-semibold text-gray-600 mb-1">Combo Title *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. SANGANERI KURTI + MINAKARI JHUMKA COMBO"
+                  value={editingCombo.title}
+                  onChange={(e) => setEditingCombo({ ...editingCombo, title: e.target.value })}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 font-bold focus:ring-1 focus:ring-glamora-rose"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-gray-600 mb-1">Tagline *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Pure Mulmul Cotton Kurti with 18K Gold Plated Jhumkis"
+                  value={editingCombo.tagline}
+                  onChange={(e) => setEditingCombo({ ...editingCombo, tagline: e.target.value })}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5"
+                />
+              </div>
+
+              {/* Combo Image Upload Option */}
+              <div>
+                <label className="block font-semibold text-gray-600 mb-1">Combo Image *</label>
+                <div className="flex items-center gap-3 mb-2 p-3 bg-gray-50 border border-gray-200 rounded-2xl">
+                  {editingCombo.image ? (
+                    <img
+                      src={editingCombo.image}
+                      alt="Combo Preview"
+                      className="w-16 h-20 object-cover rounded-xl border border-glamora-blush shadow-sm flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-16 h-20 rounded-xl bg-gray-200 flex items-center justify-center text-gray-400 flex-shrink-0">
+                      <ImageIcon className="w-6 h-6" />
+                    </div>
+                  )}
+
+                  <div className="flex-1 space-y-1.5">
+                    <label className="inline-flex items-center gap-2 bg-glamora-rose hover:bg-glamora-rose-dark text-white text-xs font-bold px-3.5 py-2 rounded-xl cursor-pointer transition shadow-sm">
+                      <Upload className="w-4 h-4" />
+                      <span>Upload Combo Photo</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleComboImageUpload}
+                        className="hidden"
+                      />
+                    </label>
+                    <p className="text-[10px] text-gray-500">
+                      Upload model photo wearing the combo from mobile/PC
+                    </p>
+                  </div>
+                </div>
+
+                <input
+                  type="text"
+                  placeholder="Or enter Image URL (https://...)"
+                  value={editingCombo.image || ''}
+                  onChange={(e) => setEditingCombo({ ...editingCombo, image: e.target.value })}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 font-mono text-[11px]"
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block font-semibold text-gray-600 mb-1">Combo Price (₹) *</label>
+                  <label className="block font-semibold text-gray-600 mb-1">Combo Selling Price (₹) *</label>
                   <input
                     type="number"
                     required
@@ -1037,7 +1240,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     onChange={(e) => setEditingCombo({ 
                       ...editingCombo, 
                       comboPrice: Number(e.target.value),
-                      savings: editingCombo.originalTotal - Number(e.target.value)
+                      savings: (editingCombo.originalTotal || 999) - Number(e.target.value)
                     })}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 font-bold text-glamora-rose"
                   />
@@ -1061,8 +1264,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <label className="block font-semibold text-gray-600 mb-1">Badge Tag</label>
                 <input
                   type="text"
+                  placeholder="e.g. VIRAL DEAL • FLAT ₹499"
                   value={editingCombo.badge}
                   onChange={(e) => setEditingCombo({ ...editingCombo, badge: e.target.value })}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-gray-600 mb-1">Combo Description</label>
+                <textarea
+                  rows={2}
+                  placeholder="Brief details about the combo outfit styling..."
+                  value={editingCombo.description}
+                  onChange={(e) => setEditingCombo({ ...editingCombo, description: e.target.value })}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5"
                 />
               </div>
@@ -1077,10 +1292,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-glamora-charcoal hover:bg-glamora-rose text-white py-3 rounded-xl font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="flex-1 bg-glamora-charcoal hover:bg-glamora-rose text-white py-3 rounded-xl font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
                 >
                   <Save className="w-4 h-4" />
-                  <span>Update Combo</span>
+                  <span>{isNewCombo ? 'Create & Publish Combo' : 'Save Combo Changes'}</span>
                 </button>
               </div>
             </form>

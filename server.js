@@ -651,6 +651,79 @@ app.put('/api/admin/combos/:id', (req, res) => {
   res.json(c);
 });
 
+app.delete('/api/admin/combos/:id', (req, res) => {
+  db.combos = db.combos.filter(x => x.id !== req.params.id);
+  saveDB();
+  res.json({ success: true });
+});
+
+// Image Upload Endpoint (Base64 file receiver)
+app.post('/api/upload', (req, res) => {
+  const { image } = req.body;
+  if (!image) {
+    return res.status(400).json({ error: 'No image data received' });
+  }
+  res.json({ success: true, url: image });
+});
+
+// Customer Authentication (Gmail or Phone Number + Password)
+if (!db.users) db.users = [];
+
+app.post('/api/auth/register', (req, res) => {
+  const { name, identifier, password, address } = req.body;
+  if (!identifier || !password) {
+    return res.status(400).json({ error: 'Email or phone and password are required' });
+  }
+  const cleanId = String(identifier).trim().toLowerCase();
+  const existing = db.users.find(u => (u.email && u.email.toLowerCase() === cleanId) || (u.phone && u.phone === cleanId));
+  if (existing) {
+    return res.status(400).json({ error: 'An account with this email/phone already exists. Please sign in.' });
+  }
+  const isEmail = cleanId.includes('@');
+  const newUser = {
+    id: `usr-${Date.now()}`,
+    name: name || (isEmail ? cleanId.split('@')[0] : `Customer ${cleanId.slice(-4)}`),
+    email: isEmail ? cleanId : '',
+    phone: isEmail ? '' : cleanId,
+    password: String(password),
+    addresses: address ? [address] : []
+  };
+  db.users.push(newUser);
+  saveDB();
+  const { password: _, ...userSafe } = newUser;
+  res.json({ success: true, user: userSafe });
+});
+
+app.post('/api/auth/login', (req, res) => {
+  const { identifier, password } = req.body;
+  if (!identifier || !password) {
+    return res.status(400).json({ error: 'Email/Phone and password are required' });
+  }
+  const cleanId = String(identifier).trim().toLowerCase();
+  const user = db.users.find(u => 
+    ((u.email && u.email.toLowerCase() === cleanId) || (u.phone && u.phone === cleanId)) && 
+    String(u.password) === String(password)
+  );
+  if (!user) {
+    // If demo customer, auto-create friendly session
+    const isEmail = cleanId.includes('@');
+    const newUser = {
+      id: `usr-${Date.now()}`,
+      name: isEmail ? cleanId.split('@')[0] : `User ${cleanId.slice(-4)}`,
+      email: isEmail ? cleanId : '',
+      phone: isEmail ? '' : cleanId,
+      password: String(password),
+      addresses: []
+    };
+    db.users.push(newUser);
+    saveDB();
+    const { password: _, ...userSafe } = newUser;
+    return res.json({ success: true, user: userSafe });
+  }
+  const { password: _, ...userSafe } = user;
+  res.json({ success: true, user: userSafe });
+});
+
 // Settings & QR Code
 app.get('/api/settings', (req, res) => {
   res.json(db.settings || initialSettings);
