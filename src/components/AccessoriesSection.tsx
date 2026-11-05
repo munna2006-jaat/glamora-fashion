@@ -26,14 +26,14 @@ export const AccessoriesSection: React.FC<AccessoriesSectionProps> = ({
         
         <div className="text-center max-w-2xl mx-auto mb-10">
           <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-glamora-rose mb-2">
-            <Gem className="w-3.5 h-3.5" />
-            <span>Finishing Accents</span>
+            <Gem className="w-3.5 h-3.5 text-glamora-gold" />
+            <span>Handmade Jaipur Jewelry</span>
           </div>
           <h2 className="font-serif text-3xl sm:text-4xl font-bold text-glamora-charcoal">
-            Jewelry, Bags & Memory Foam Footwear
+            Rajasthani 18K Minakari & Oxidised Jhumkas • Flat ₹499
           </h2>
           <p className="mt-2 text-sm text-gray-500 font-sans font-light">
-            18K micron gold plated jhumkas, cloud-soft dumpling bags, and bite-free cushion juttis.
+            Lotus motif Meenakari chandbalis, jingling ghungroo silver jhumkis, and block-printed college totes.
           </p>
         </div>
 

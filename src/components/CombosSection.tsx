@@ -20,21 +20,21 @@ export const CombosSection: React.FC<CombosSectionProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-14">
-          <div className="inline-flex items-center gap-2 bg-glamora-blush/70 text-glamora-rose-dark px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-3">
-            <Sparkles className="w-3.5 h-3.5 text-glamora-gold" />
-            <span>The Signature Differentiator</span>
+        <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
+          <div className="inline-flex items-center gap-2 bg-glamora-blush/80 text-glamora-rose-dark px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-3 border border-glamora-rose/30">
+            <Sparkles className="w-3.5 h-3.5 text-glamora-gold animate-bounce" />
+            <span>🔥 Dhamaka Offers • Kurti + Jhumkas From ₹499</span>
           </div>
           <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-glamora-charcoal tracking-tight">
-            Curated GLAMORA Combos
+            Curated Rajasthani Combos
           </h2>
-          <p className="mt-4 text-sm sm:text-base text-glamora-charcoal/70 font-sans font-light leading-relaxed">
-            Every outfit needs the right accents. We style complete head-to-toe looks with hand-matched jewelry, bags & footwear — giving you effortlessly cohesive styling with up to ₹1,598 in bundled savings.
+          <p className="mt-3 text-xs sm:text-sm md:text-base text-glamora-charcoal/80 font-sans font-light leading-relaxed">
+            Pure Jaipur cotton kurtis paired with authentic Minakari & oxidised jhumkis — plus our viral <span className="font-bold text-glamora-rose">Kurti + Baggy Jeans combo for just ₹699</span>!
           </p>
         </div>
 
         {/* Combos Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-8">
           {combos.map((combo) => (
             <div
               key={combo.id}

@@ -127,3 +127,14 @@ export interface Coupon {
   description: string;
 }
 
+export interface AppSettings {
+  upiId: string;
+  upiName: string;
+  qrCodeUrl: string;
+  announcementText: string;
+  whatsappNumber: string;
+  shippingCharge: number;
+  freeShippingAbove: number;
+}
+
+

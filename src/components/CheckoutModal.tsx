@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { CartItem, Coupon, Address, Order } from '../types';
-import { X, ShieldCheck, CheckCircle2, QrCode, CreditCard, Banknote, Building2, Truck, Lock, ArrowRight } from 'lucide-react';
+import { CartItem, Coupon, Address, Order, AppSettings } from '../types';
+import { X, ShieldCheck, CheckCircle2, QrCode, CreditCard, Banknote, Building2, Truck, Lock, ArrowRight, Copy, Check } from 'lucide-react';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -9,6 +9,7 @@ interface CheckoutModalProps {
   appliedCoupon: Coupon | null;
   giftWrap: boolean;
   onOrderPlaced: (order: Order) => void;
+  settings?: AppSettings;
 }
 
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({
@@ -18,18 +19,29 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   appliedCoupon,
   giftWrap,
   onOrderPlaced,
+  settings,
 }) => {
   if (!isOpen) return null;
 
   const [name, setName] = useState('Ananya Sharma');
   const [phone, setPhone] = useState('+91 98765 43210');
   const [street, setStreet] = useState('Flat 304, Palm Grove Apartments, 12th Main Road');
-  const [city, setCity] = useState('New Delhi');
-  const [state, setState] = useState('Delhi');
-  const [pincode, setPincode] = useState('110007');
+  const [city, setCity] = useState('Jaipur');
+  const [state, setState] = useState('Rajasthan');
+  const [pincode, setPincode] = useState('302001');
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'card' | 'cod' | 'netbanking'>('upi');
-  const [upiId, setUpiId] = useState('ananya@okhdfcbank');
+  const [utrNumber, setUtrNumber] = useState('');
+  const [copiedUpi, setCopiedUpi] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const activeUpi = settings?.upiId || 'glamora@upi';
+  const activeQr = settings?.qrCodeUrl || 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=glamora@upi&pn=GLAMORA%20FASHION&cu=INR';
+
+  const copyUpi = () => {
+    navigator.clipboard.writeText(activeUpi);
+    setCopiedUpi(true);
+    setTimeout(() => setCopiedUpi(false), 2000);
+  };
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const isFreeShipping = subtotal >= 999;
@@ -288,18 +300,54 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               </label>
             </div>
 
-            {/* UPI ID input simulator */}
+            {/* UPI QR Display & UTR Box */}
             {paymentMethod === 'upi' && (
-              <div className="mt-3 p-3 rounded-xl bg-glamora-cream/50 border border-glamora-blush/40 flex items-center gap-3">
-                <QrCode className="w-8 h-8 text-glamora-charcoal/80 flex-shrink-0" />
-                <div className="flex-1">
-                  <label className="block text-[11px] font-semibold text-gray-600 mb-0.5">Enter UPI ID / VPA</label>
+              <div className="mt-4 p-4 rounded-2xl bg-glamora-cream/70 border border-glamora-blush space-y-3">
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <div className="bg-white p-2 rounded-2xl border border-glamora-blush shadow-sm flex-shrink-0">
+                    <img
+                      src={activeQr}
+                      alt="GLAMORA Official UPI QR Code"
+                      className="w-32 h-32 object-contain rounded-xl"
+                    />
+                    <div className="text-[9px] text-center font-bold text-glamora-rose mt-1">SCAN WITH ANY APP</div>
+                  </div>
+
+                  <div className="flex-1 text-xs space-y-2 text-center sm:text-left">
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-glamora-charcoal">
+                      Pay via GooglePay / PhonePe / Paytm
+                    </div>
+                    <div className="flex items-center justify-center sm:justify-start gap-2">
+                      <code className="bg-white px-2.5 py-1 rounded-lg border border-glamora-blush/60 font-mono font-bold text-glamora-charcoal text-[11px]">
+                        {activeUpi}
+                      </code>
+                      <button
+                        type="button"
+                        onClick={copyUpi}
+                        className="bg-glamora-charcoal hover:bg-glamora-rose text-white text-[10px] font-bold px-2 py-1 rounded-md flex items-center gap-1 transition"
+                      >
+                        {copiedUpi ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                        <span>{copiedUpi ? 'Copied' : 'Copy'}</span>
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-gray-500">
+                      Scan the QR Code or pay directly to the UPI ID. After paying ₹{grandTotal.toLocaleString('en-IN')}, enter the 12-digit UTR below:
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                    12-Digit UPI Ref / UTR No. *
+                  </label>
                   <input
                     type="text"
-                    value={upiId}
-                    onChange={(e) => setUpiId(e.target.value)}
-                    placeholder="yourname@okhdfcbank"
-                    className="w-full bg-white border border-gray-200 rounded-lg p-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-glamora-rose"
+                    required={paymentMethod === 'upi'}
+                    maxLength={12}
+                    value={utrNumber}
+                    onChange={(e) => setUtrNumber(e.target.value.replace(/\D/g, ''))}
+                    placeholder="e.g. 429188294821"
+                    className="w-full bg-white border border-gray-200 rounded-xl p-2.5 font-mono text-xs focus:ring-1 focus:ring-glamora-rose font-bold"
                   />
                 </div>
               </div>

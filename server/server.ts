@@ -242,6 +242,20 @@ app.post('/api/reviews', (req, res) => {
   res.status(201).json(review);
 });
 
+// Settings
+app.get('/api/settings', (req, res) => {
+  res.json(db.getSettings());
+});
+
+app.post('/api/admin/settings', (req, res) => {
+  try {
+    const updated = db.updateSettings(req.body);
+    res.json({ success: true, settings: updated });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Admin Stats
 app.get('/api/admin/stats', (req, res) => {
   const orders = db.getOrders();

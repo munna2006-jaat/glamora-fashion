@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Product, Combo, CartItem, Order, Coupon, Review } from './types';
-import { MOCK_PRODUCTS, MOCK_COMBOS, MOCK_COUPONS, MOCK_REVIEWS } from './data/mockData';
+import { Product, Combo, CartItem, Order, Coupon, Review, AppSettings } from './types';
+import { MOCK_PRODUCTS, MOCK_COMBOS, MOCK_COUPONS, MOCK_REVIEWS, DEFAULT_SETTINGS } from './data/mockData';
 
 // Components
 import { AnnouncementBar } from './components/AnnouncementBar';
@@ -13,9 +13,7 @@ import { ProductCard } from './components/ProductCard';
 import { ProductDetailModal } from './components/ProductDetailModal';
 import { CollegeGirlEdit } from './components/CollegeGirlEdit';
 import { IndianWearSection } from './components/IndianWearSection';
-import { WesternWearSection } from './components/WesternWearSection';
 import { AccessoriesSection } from './components/AccessoriesSection';
-import { GiftBoxesSection } from './components/GiftBoxesSection';
 import { ReviewsWall } from './components/ReviewsWall';
 import { InstagramFeed } from './components/InstagramFeed';
 import { CartDrawer } from './components/CartDrawer';
@@ -25,6 +23,7 @@ import { OrderTrackingModal } from './components/OrderTrackingModal';
 import { AdminDashboard } from './components/AdminDashboard';
 import { WishlistModal } from './components/WishlistModal';
 import { CouponsModal } from './components/CouponsModal';
+import { MobileBottomNav } from './components/MobileBottomNav';
 import { Footer } from './components/Footer';
 
 export const App: React.FC = () => {
@@ -33,6 +32,7 @@ export const App: React.FC = () => {
   const [combos, setCombos] = useState<Combo[]>(MOCK_COMBOS);
   const [coupons, setCoupons] = useState<Coupon[]>(MOCK_COUPONS);
   const [reviews, setReviews] = useState<Review[]>(MOCK_REVIEWS);
+  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [activeCategory, setActiveCategory] = useState<string>('all');
 
   // Cart & Wishlist State
@@ -62,7 +62,9 @@ export const App: React.FC = () => {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isTrackingOpen, setIsTrackingOpen] = useState(false);
   const [isCouponsOpen, setIsCouponsOpen] = useState(false);
-  const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [isAdminOpen, setIsAdminOpen] = useState(() => {
+    return window.location.pathname === '/admin' || window.location.hash === '#admin';
+  });
   const [activeTrackingId, setActiveTrackingId] = useState('');
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null);
   const [appliedCheckoutCoupon, setAppliedCheckoutCoupon] = useState<Coupon | null>(null);
@@ -81,16 +83,18 @@ export const App: React.FC = () => {
   // Initial Fetch from API & Route Check
   const refreshData = async () => {
     try {
-      const [resProd, resCombo, resCoup, resRev] = await Promise.all([
+      const [resProd, resCombo, resCoup, resRev, resSet] = await Promise.all([
         fetch('/api/products'),
         fetch('/api/combos'),
         fetch('/api/coupons'),
-        fetch('/api/reviews')
+        fetch('/api/reviews'),
+        fetch('/api/settings')
       ]);
       if (resProd.ok) setProducts(await resProd.json());
       if (resCombo.ok) setCombos(await resCombo.json());
       if (resCoup.ok) setCoupons(await resCoup.json());
       if (resRev.ok) setReviews(await resRev.json());
+      if (resSet.ok) setSettings(await resSet.json());
     } catch (e) {
       console.log('Using local dataset as fallback:', e);
     }
@@ -98,10 +102,16 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     refreshData();
-    // Open admin directly if URL is /admin or #admin
-    if (window.location.pathname === '/admin' || window.location.hash === '#admin') {
-      setIsAdminOpen(true);
-    }
+
+    const handlePopState = () => {
+      if (window.location.pathname === '/admin' || window.location.hash === '#admin') {
+        setIsAdminOpen(true);
+      } else {
+        setIsAdminOpen(false);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
   const showToast = (msg: string) => {
@@ -193,19 +203,16 @@ export const App: React.FC = () => {
     setIsTrackingOpen(true);
   };
 
-  // Category Filtering
+  // Category Filtering & Smooth Navigation
   const handleSelectCategory = (cat: string) => {
     setActiveCategory(cat);
-    if (cat === 'combos') {
+    if (cat === 'combos' || cat === 'kurti_jeans') {
       const el = document.getElementById('combos-section');
       if (el) el.scrollIntoView({ behavior: 'smooth' });
     } else if (cat === 'indian') {
       const el = document.getElementById('indian-section');
       if (el) el.scrollIntoView({ behavior: 'smooth' });
-    } else if (cat === 'western') {
-      const el = document.getElementById('western-section');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    } else if (cat === 'accessories' || cat === 'footwear') {
+    } else if (cat === 'accessories') {
       const el = document.getElementById('accessories-section');
       if (el) el.scrollIntoView({ behavior: 'smooth' });
     } else {
@@ -214,11 +221,11 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-glamora-cream text-glamora-charcoal font-sans flex flex-col selection:bg-glamora-blush selection:text-glamora-charcoal">
+    <div className="min-h-screen bg-glamora-cream text-glamora-charcoal font-sans flex flex-col pb-16 lg:pb-0 selection:bg-glamora-blush selection:text-glamora-charcoal">
       
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-glamora-charcoal text-white text-xs font-semibold px-4 py-3 rounded-2xl shadow-elevated border border-glamora-rose animate-slide-up flex items-center gap-2">
+        <div className="fixed bottom-20 lg:bottom-6 right-6 z-50 bg-glamora-charcoal text-white text-xs font-semibold px-4 py-3 rounded-2xl shadow-elevated border border-glamora-rose animate-slide-up flex items-center gap-2">
           <span>{toastMessage}</span>
         </div>
       )}
@@ -226,16 +233,12 @@ export const App: React.FC = () => {
       {/* Top Announcement Bar */}
       <AnnouncementBar onOpenCoupons={() => setIsCouponsOpen(true)} />
 
-      {/* Main Luxury Navigation Bar */}
+      {/* Main Luxury Navigation Bar (No user-side admin button) */}
       <Navbar
         cartCount={cartItems.reduce((acc, i) => acc + i.quantity, 0)}
         wishlistCount={wishlistIds.length}
         onOpenCart={() => setIsCartOpen(true)}
         onOpenWishlist={() => setIsWishlistOpen(true)}
-        onOpenAdmin={() => {
-          setIsAdminOpen(true);
-          window.history.pushState(null, '', '/admin');
-        }}
         onOpenTrackOrder={() => {
           setActiveTrackingId('');
           setIsTrackingOpen(true);
@@ -252,13 +255,13 @@ export const App: React.FC = () => {
         <HeroBanner
           onShopCombos={() => handleSelectCategory('combos')}
           onShopIndian={() => handleSelectCategory('indian')}
-          onShopCollege={() => handleSelectCategory('college')}
+          onShopCollege={() => handleSelectCategory('kurti_jeans')}
         />
 
         {/* Story Highlights Bar */}
         <StoryHighlights onSelectCategory={handleSelectCategory} />
 
-        {/* Curated GLAMORA Combos (The 8 Signature Collections) */}
+        {/* 1. CURATED COMBOS SECTION (SHOWN FIRST ON HOMEPAGE AS REQUESTED) */}
         <CombosSection
           combos={combos}
           onOpenComboModal={(c) => setSelectedCombo(c)}
@@ -281,17 +284,7 @@ export const App: React.FC = () => {
           }}
         />
 
-        {/* College Girl Edit (Under ₹1,499) */}
-        <CollegeGirlEdit
-          products={products}
-          wishlistIds={wishlistIds}
-          onToggleWishlist={handleToggleWishlist}
-          onSelectProduct={(p) => setSelectedProduct(p)}
-          onQuickAdd={handleQuickAddProduct}
-          onViewAllCollege={() => handleSelectCategory('college')}
-        />
-
-        {/* Indian Ethnic Wear Collection */}
+        {/* 2. RAJASTHANI & JAIPUR ETHNIC KURTI COLLECTION (@ ₹499) */}
         <IndianWearSection
           products={products}
           wishlistIds={wishlistIds}
@@ -300,16 +293,17 @@ export const App: React.FC = () => {
           onQuickAdd={handleQuickAddProduct}
         />
 
-        {/* Western Boutique Edit */}
-        <WesternWearSection
+        {/* 3. COLLEGE GIRL SPECIAL (KURTI + BAGGY JEANS & CAMPUS FITS) */}
+        <CollegeGirlEdit
           products={products}
           wishlistIds={wishlistIds}
           onToggleWishlist={handleToggleWishlist}
           onSelectProduct={(p) => setSelectedProduct(p)}
           onQuickAdd={handleQuickAddProduct}
+          onViewAllCollege={() => handleSelectCategory('combos')}
         />
 
-        {/* Accessories & Footwear Section */}
+        {/* 4. RAJASTHANI 18K MINAKARI & OXIDISED JHUMKAS SECTION */}
         <AccessoriesSection
           products={products}
           wishlistIds={wishlistIds}
@@ -318,31 +312,31 @@ export const App: React.FC = () => {
           onQuickAdd={handleQuickAddProduct}
         />
 
-        {/* Luxury Gift Boxes & Unboxing Experience */}
-        <GiftBoxesSection
-          combos={combos}
-          onOpenComboModal={(c) => setSelectedCombo(c)}
-        />
-
-        {/* Customer Reviews Wall */}
+        {/* 5. CUSTOMER REVIEWS WALL */}
         <ReviewsWall reviews={reviews} />
 
-        {/* Shoppable Instagram Lookbook Feed */}
+        {/* 6. INSTAGRAM LOOKBOOK FEED */}
         <InstagramFeed onShopLook={() => handleSelectCategory('combos')} />
 
       </main>
 
-      {/* Premium Footer */}
+      {/* Customer-Facing Footer */}
       <Footer
         onSelectCategory={handleSelectCategory}
         onOpenTrackOrder={() => {
           setActiveTrackingId('');
           setIsTrackingOpen(true);
         }}
-        onOpenAdmin={() => {
-          setIsAdminOpen(true);
-          window.history.pushState(null, '', '/admin');
-        }}
+      />
+
+      {/* Mobile-First Bottom Floating App Dock Bar */}
+      <MobileBottomNav
+        cartCount={cartItems.reduce((acc, i) => acc + i.quantity, 0)}
+        wishlistCount={wishlistIds.length}
+        activeCategory={activeCategory}
+        onSelectCategory={handleSelectCategory}
+        onOpenCart={() => setIsCartOpen(true)}
+        onOpenWishlist={() => setIsWishlistOpen(true)}
       />
 
       {/* ================= MODALS & DRAWERS ================= */}
@@ -386,7 +380,7 @@ export const App: React.FC = () => {
         }}
       />
 
-      {/* Checkout Modal */}
+      {/* Checkout Modal with Dynamic Admin QR Code & UPI */}
       <CheckoutModal
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
@@ -394,6 +388,7 @@ export const App: React.FC = () => {
         appliedCoupon={appliedCheckoutCoupon}
         giftWrap={isGiftWrapSelected}
         onOrderPlaced={handleOrderPlaced}
+        settings={settings}
       />
 
       {/* Order Confirmed Celebration Modal */}
@@ -429,7 +424,7 @@ export const App: React.FC = () => {
         }}
       />
 
-      {/* Full Admin Dashboard Hub */}
+      {/* DEDICATED ADMIN CONTROL HUB (ACCESSIBLE VIA /admin ROUTE) */}
       <AdminDashboard
         isOpen={isAdminOpen}
         onClose={() => {
@@ -438,7 +433,9 @@ export const App: React.FC = () => {
         }}
         products={products}
         combos={combos}
+        settings={settings}
         onRefreshData={refreshData}
+        onUpdateSettings={(newSet) => setSettings(newSet)}
       />
 
     </div>
@@ -446,4 +443,3 @@ export const App: React.FC = () => {
 };
 
 export default App;
-

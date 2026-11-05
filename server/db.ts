@@ -1,12 +1,10 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { Product, Combo, Order, User, Review, Coupon } from '../src/types';
-import { MOCK_PRODUCTS, MOCK_COMBOS, MOCK_REVIEWS, MOCK_COUPONS } from '../src/data/mockData';
+import { Product, Combo, Order, User, Review, Coupon, AppSettings } from '../src/types';
+import { MOCK_PRODUCTS, MOCK_COMBOS, MOCK_REVIEWS, MOCK_COUPONS, DEFAULT_SETTINGS } from '../src/data/mockData';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const DB_PATH = path.join(__dirname, 'glamora_store.json');
+const DB_PATH = path.join(process.cwd(), 'server', 'glamora_store.json');
 
 export interface DatabaseSchema {
   products: Product[];
@@ -15,6 +13,7 @@ export interface DatabaseSchema {
   reviews: Review[];
   coupons: Coupon[];
   users: User[];
+  settings: AppSettings;
   admin: {
     username: string;
     passwordHash: string; // Plain/simple for demo
@@ -96,6 +95,7 @@ class StorageEngine {
       orders: initialOrders,
       reviews: MOCK_REVIEWS,
       coupons: MOCK_COUPONS,
+      settings: DEFAULT_SETTINGS,
       users: [
         {
           id: 'usr-1',
@@ -235,6 +235,21 @@ class StorageEngine {
   // Coupons
   getCoupons(): Coupon[] {
     return this.data.coupons;
+  }
+
+  // Settings
+  getSettings(): AppSettings {
+    if (!this.data.settings) {
+      this.data.settings = DEFAULT_SETTINGS;
+      this.save();
+    }
+    return this.data.settings;
+  }
+
+  updateSettings(newSettings: Partial<AppSettings>): AppSettings {
+    this.data.settings = { ...this.getSettings(), ...newSettings };
+    this.save();
+    return this.data.settings;
   }
 
   // Reviews

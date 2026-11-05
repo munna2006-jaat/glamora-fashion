@@ -33,10 +33,10 @@ export const CollegeGirlEdit: React.FC<CollegeGirlEditProps> = ({
               <span>Campus & Everyday Chic</span>
             </div>
             <h2 className="font-serif text-3xl sm:text-4xl font-bold text-glamora-charcoal tracking-tight">
-              The College Girl Edit • Under ₹1,499
+              The College Girl Edit • ₹499 - ₹699
             </h2>
             <p className="mt-2 text-sm text-glamora-charcoal/70 font-sans font-light">
-              Budget-friendly, high-comfort everyday pieces you can wear to 8 AM lectures, library dates, and cafe meetups.
+              Budget-friendly high-waist baggy jeans, mirror-work short peplum kurtis, and durable canvas tote bags for campus life.
             </p>
           </div>
 

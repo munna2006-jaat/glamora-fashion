@@ -35,14 +35,14 @@ export const IndianWearSection: React.FC<IndianWearSectionProps> = ({
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
           <div>
             <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-glamora-rose mb-2">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Timeless Craft & Contemporary Cuts</span>
+              <Sparkles className="w-3.5 h-3.5 text-glamora-gold" />
+              <span>Pure 100% Cotton • Sanganeri & Bagru Handblocks</span>
             </div>
             <h2 className="font-serif text-3xl sm:text-4xl font-bold text-glamora-charcoal">
-              Indian Ethnic Collection
+              Jaipuri & Rajasthani Kurtis • Flat ₹499
             </h2>
             <p className="mt-2 text-sm text-gray-500 font-sans font-light">
-              From pure mulmul handblock daily kurtis to luminous Chanderi sets and tissue sarees.
+              Breathable mulmul cotton, Leheriya flared silhouettes, and Dabu block prints marked down from ₹1,199 to just ₹499.
             </p>
           </div>
 

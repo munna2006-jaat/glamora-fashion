@@ -6,13 +6,12 @@ interface StoryHighlightsProps {
 
 export const StoryHighlights: React.FC<StoryHighlightsProps> = ({ onSelectCategory }) => {
   const stories = [
-    { id: 'combos', label: '8 Combos ✨', img: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=300&q=80', badge: 'Hot' },
-    { id: 'college', label: 'College Under ₹999', img: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=300&q=80', badge: 'Viral' },
-    { id: 'indian', label: 'Cotton Kurtis', img: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=300&q=80' },
-    { id: 'festive', label: 'Festive Sarees', img: 'https://images.unsplash.com/photo-1610030469668-932d0c64c781?auto=format&fit=crop&w=300&q=80' },
-    { id: 'western', label: 'Midi Dresses', img: 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?auto=format&fit=crop&w=300&q=80' },
-    { id: 'accessories', label: '18K Jhumkas', img: 'https://images.unsplash.com/photo-1630019852942-f89202989a59?auto=format&fit=crop&w=300&q=80' },
-    { id: 'footwear', label: 'Cushion Juttis', img: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=300&q=80' },
+    { id: 'combos', label: '🔥 ₹499 Combos', img: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=300&q=80', badge: 'Hot' },
+    { id: 'kurti_jeans', label: '👖 Kurti + Jeans', img: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=300&q=80', badge: '₹699' },
+    { id: 'indian', label: '🌸 Sanganeri Kurti', img: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=300&q=80', badge: '₹499' },
+    { id: 'accessories', label: '✨ Minakari Jhumkas', img: 'https://images.unsplash.com/photo-1630019852942-f89202989a59?auto=format&fit=crop&w=300&q=80' },
+    { id: 'indian', label: '👑 Leheriya Flared', img: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=300&q=80' },
+    { id: 'accessories', label: '🪩 Oxidised Silver', img: 'https://images.unsplash.com/photo-1611591475155-426ea7b18fc9?auto=format&fit=crop&w=300&q=80' },
   ];
 
   return (

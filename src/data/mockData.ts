@@ -1,909 +1,527 @@
-import { Product, Combo, Review, Coupon } from '../types';
+import { Product, Combo, Review, Coupon, AppSettings } from '../types';
+
+export const DEFAULT_SETTINGS: AppSettings = {
+  upiId: 'glamora@upi',
+  upiName: 'GLAMORA FASHION PVT LTD',
+  qrCodeUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=glamora@upi&pn=GLAMORA%20FASHION&cu=INR',
+  announcementText: '🔥 DHAMAKA SALE: JAIPURI KURTI + EARRING COMBOS AT JUST ₹499 | KURTI + BAGGY JEANS AT ₹699!',
+  whatsappNumber: '+91 98765 43210',
+  shippingCharge: 70,
+  freeShippingAbove: 799
+};
 
 export const MOCK_PRODUCTS: Product[] = [
-  // ===================== INDIAN COLLECTION =====================
+  // ===================== RAJASTHANI & JAIPUR KURTIS =====================
   {
     id: 'prod-ind-1',
-    name: 'Gulabi Rose Handblock Tiered Anarkali Kurti',
-    sku: 'GLM-IND-001',
+    name: 'Jaipuri Sanganeri Handblock Mulmul Straight Kurti',
+    sku: 'GLM-JPR-001',
     category: 'indian',
     subcategory: 'Kurtis',
-    price: 1299,
-    originalPrice: 1799,
-    priceTier: 'everyday',
+    price: 499,
+    originalPrice: 999,
+    priceTier: 'affordable',
     images: [
       'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80',
       'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80'
     ],
-    description: 'A breezy pure mulmul cotton tiered anarkali kurti adorned with hand-carved floral block prints in soft rose and blush tones. Detailed with gota patti trims on sleeves.',
-    fabric: '100% Breathable Mulmul Cotton',
-    care: 'Gentle hand wash in cold water with mild detergent. Dry in shade.',
+    description: 'Pure 100% Jaipur mulmul cotton kurti with authentic Sanganeri handblock floral print. Breathable round neck with wooden button detailing. Best paired with oxidised jhumkas or jeans.',
+    fabric: '100% Pure Jaipur Mulmul Cotton',
+    care: 'First wash gentle hand wash in cold water.',
     sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
     colors: [
-      { name: 'Blush Rose', hex: '#D98BA5' },
-      { name: 'Soft Cream', hex: '#FFF9F6' }
+      { name: 'Gulabi Rose', hex: '#D98BA5' },
+      { name: 'Cream Peach', hex: '#FFF2EB' }
     ],
-    stock: 45,
-    rating: 4.8,
-    reviewsCount: 128,
+    stock: 65,
+    rating: 4.9,
+    reviewsCount: 340,
     isNewArrival: true,
     isBestSeller: true,
     isCollegeGirlEdit: true,
-    matchingAccessories: ['prod-acc-1', 'prod-acc-4']
+    matchingAccessories: ['prod-acc-1', 'prod-acc-2']
   },
   {
     id: 'prod-ind-2',
-    name: 'Noor Chanderi Silk Kurti & Afghan Pant Set with Organza Dupatta',
-    sku: 'GLM-IND-002',
+    name: 'Rajasthani Leheriya Pink Tiered Flared Anarkali Kurti',
+    sku: 'GLM-JPR-002',
     category: 'indian',
-    subcategory: 'Kurti sets',
-    price: 3499,
-    originalPrice: 4499,
-    priceTier: 'premium',
+    subcategory: 'Kurtis',
+    price: 499,
+    originalPrice: 1199,
+    priceTier: 'affordable',
     images: [
       'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=800&q=80',
       'https://images.unsplash.com/photo-1609357605129-26f69add5d6e?auto=format&fit=crop&w=800&q=80'
     ],
-    description: 'Elevated luxury for festive occasions and family weddings. Crafted from luminous peach-gold Chanderi silk with delicate zardozi neckline and scalloped organza dupatta.',
-    fabric: 'Chanderi Silk with Cotton Lining & Pure Organza Dupatta',
-    care: 'Dry clean only to maintain silk lustre.',
-    sizes: ['S', 'M', 'L', 'XL'],
+    description: 'Vibrant Rajasthani diagonal Leheriya print in blush pink and rani rose tones. Features Gota-Patti border on sleeves and flared hem with handmade tassel dori.',
+    fabric: 'Lightweight Cambric Cotton',
+    care: 'Gentle hand wash. Iron on reverse.',
+    sizes: ['S', 'M', 'L', 'XL', 'XXL'],
     colors: [
-      { name: 'Powder Peach', hex: '#FAD2E1' },
-      { name: 'Sage Mint', hex: '#D8E2DC' }
+      { name: 'Rani & Blush Pink', hex: '#E75480' },
+      { name: 'Yellow Ochre', hex: '#F4D03F' }
     ],
-    stock: 22,
-    rating: 4.9,
-    reviewsCount: 84,
+    stock: 50,
+    rating: 4.8,
+    reviewsCount: 210,
     isBestSeller: true,
     isFestive: true,
-    matchingAccessories: ['prod-acc-2', 'prod-acc-3']
+    matchingAccessories: ['prod-acc-1']
   },
   {
     id: 'prod-ind-3',
-    name: 'Kashti Pastel Mirror-Work Ethnic Co-ord Set',
-    sku: 'GLM-IND-003',
+    name: 'Bagru Dabu Print Natural Indigo A-Line Cotton Kurti',
+    sku: 'GLM-JPR-003',
     category: 'indian',
-    subcategory: 'Ethnic co-ord sets',
-    price: 1899,
-    originalPrice: 2499,
-    priceTier: 'everyday',
+    subcategory: 'Kurtis',
+    price: 499,
+    originalPrice: 1099,
+    priceTier: 'affordable',
     images: [
-      'https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=800&q=80'
+      'https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=800&q=80'
     ],
-    description: 'The viral Gen-Z modern ethnic co-ord featuring a crop peplum top with real micro-mirror embroidery and tailored straight-cut palazzo trousers with side pockets.',
-    fabric: 'Rayon Viscose Blend',
-    care: 'Machine wash delicate cycle. Iron on reverse side.',
+    description: 'Authentic Bagru village hand-resist Dabu block print on indigo organic cotton. Features functional side pockets and mandarin collar. Perfect for everyday college wear.',
+    fabric: '100% Bagru Dabu Organic Cotton',
+    care: 'Wash separately in cold water.',
     sizes: ['XS', 'S', 'M', 'L', 'XL'],
-    colors: [
-      { name: 'Dusty Rose', hex: '#DDA7A5' },
-      { name: 'Lilac Mist', hex: '#E2D4F0' }
-    ],
-    stock: 38,
+    colors: [{ name: 'Indigo Blue & White', hex: '#1F3A60' }],
+    stock: 45,
     rating: 4.7,
-    reviewsCount: 96,
-    isNewArrival: true,
+    reviewsCount: 180,
     isCollegeGirlEdit: true
   },
   {
     id: 'prod-ind-4',
-    name: 'Chandani Tissue Silk Festive Saree with Embroidered Blouse Piece',
-    sku: 'GLM-IND-004',
+    name: 'Bandhani Mirror-Work Short Flared Peplum Kurti',
+    sku: 'GLM-JPR-004',
     category: 'indian',
-    subcategory: 'Sarees',
-    price: 4999,
-    originalPrice: 6499,
-    priceTier: 'premium',
+    subcategory: 'Kurtis',
+    price: 499,
+    originalPrice: 899,
+    priceTier: 'affordable',
     images: [
-      'https://images.unsplash.com/photo-1610030469668-932d0c64c781?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=800&q=80'
+      'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=800&q=80'
     ],
-    description: 'Feather-light crushed metallic tissue saree with molten gold undertones. Features an exquisite pearl-beaded cutwork border, perfect for farewells, college fests and festive nights.',
-    fabric: 'Metallic Blend Tissue Silk',
-    care: 'Dry clean recommended.',
-    sizes: ['Free Size (5.5m Saree + 0.8m Blouse)'],
+    description: 'Modern Gen-Z fusion short kurti with authentic Rajasthani Bandhej dot prints, neckline mirror embroidery, and gathered baby-doll waist. Crafted to style effortlessly over wide-leg jeans.',
+    fabric: 'Soft Rayon Cotton Blend',
+    care: 'Machine wash gentle cold.',
+    sizes: ['XS', 'S', 'M', 'L', 'XL'],
     colors: [
-      { name: 'Champagne Gold', hex: '#F3E5AB' },
-      { name: 'Rose Gold', hex: '#ECC5C0' }
+      { name: 'Sunset Coral', hex: '#F08080' },
+      { name: 'Teal Green', hex: '#008080' }
     ],
-    stock: 15,
-    rating: 5.0,
-    reviewsCount: 52,
-    isFestive: true
+    stock: 58,
+    rating: 4.8,
+    reviewsCount: 195,
+    isCollegeGirlEdit: true,
+    isBestSeller: true
   },
   {
     id: 'prod-ind-5',
-    name: 'Meera Angrakha Style Flared Everyday Cotton Kurti',
-    sku: 'GLM-IND-005',
+    name: 'Marwar Gota-Patti Festive Flared Kurti Pant Set',
+    sku: 'GLM-JPR-005',
     category: 'indian',
-    subcategory: 'Kurtis',
+    subcategory: 'Kurti sets',
     price: 799,
-    originalPrice: 1199,
-    priceTier: 'affordable',
-    images: [
-      'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80'
-    ],
-    description: 'Casual college-ready Angrakha wrap kurti with handmade fabric latkans and subtle contrast piping. Style with your favourite mom jeans or white palazzos.',
-    fabric: '100% Slub Cotton',
-    care: 'Hand or gentle machine wash.',
-    sizes: ['XS', 'S', 'M', 'L', 'XL'],
-    colors: [{ name: 'Mauve Pink', hex: '#C28CAE' }],
-    stock: 60,
-    rating: 4.6,
-    reviewsCount: 142,
-    isCollegeGirlEdit: true
-  },
-  {
-    id: 'prod-ind-6',
-    name: 'Royale Heritage Hand-Embroidered Velvet Lehenga Set',
-    sku: 'GLM-IND-006',
-    category: 'indian',
-    subcategory: 'Festive wear',
-    price: 24999,
-    originalPrice: 29999,
-    priceTier: 'exclusive',
-    images: [
-      'https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1610030469668-932d0c64c781?auto=format&fit=crop&w=800&q=80'
-    ],
-    description: 'An heirloom piece crafted for bridal sisters and festive soirees. Micro-velvet lehenga with 16-kali flare, intricate dabka and semi-precious stone embroidery.',
-    fabric: 'Micro Velvet with Pure Satin Silk Lining',
-    care: 'Specialist dry clean only.',
-    sizes: ['S', 'M', 'L'],
-    colors: [{ name: 'Deep Wine Rose', hex: '#581845' }],
-    stock: 6,
-    rating: 5.0,
-    reviewsCount: 19,
-    isFestive: true
-  },
-
-  // ===================== WESTERN COLLECTION =====================
-  {
-    id: 'prod-wst-1',
-    name: 'Parisienne French-Cuff Corset Knit Top',
-    sku: 'GLM-WST-001',
-    category: 'western',
-    subcategory: 'Tops',
-    price: 999,
     originalPrice: 1499,
     priceTier: 'affordable',
     images: [
-      'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=800&q=80'
+      'https://images.unsplash.com/photo-1610030469668-932d0c64c781?auto=format&fit=crop&w=800&q=80'
     ],
-    description: 'A sculpt-fit ribbed knit top featuring boning-inspired front seams, sweetheart neckline and softly gathered mutton sleeves. High-comfort Gen-Z chic.',
-    fabric: 'Modal Cotton Ribbed Knit',
-    care: 'Gentle wash inside out. Lay flat to dry.',
-    sizes: ['XS', 'S', 'M', 'L'],
-    colors: [
-      { name: 'Blush Cream', hex: '#F9ECE5' },
-      { name: 'Midnight Charcoal', hex: '#292329' }
-    ],
-    stock: 55,
-    rating: 4.8,
-    reviewsCount: 112,
-    isNewArrival: true,
-    isCollegeGirlEdit: true
-  },
-  {
-    id: 'prod-wst-2',
-    name: 'Aura Satin Cowl Neck Backless Midi Dress',
-    sku: 'GLM-WST-002',
-    category: 'western',
-    subcategory: 'Dresses',
-    price: 2199,
-    originalPrice: 2899,
-    priceTier: 'everyday',
-    images: [
-      'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=800&q=80'
-    ],
-    description: 'Liquid silk touch satin midi dress featuring a draped cowl neckline, side thigh slit, and delicate criss-cross tie straps at the back. Ideal for date nights and cocktail parties.',
-    fabric: 'Heavyweight Matte Satin',
-    care: 'Gentle cold hand wash or dry clean.',
-    sizes: ['XS', 'S', 'M', 'L'],
-    colors: [
-      { name: 'Rose Quartz', hex: '#D98BA5' },
-      { name: 'Champagne Satin', hex: '#EFE0D4' }
-    ],
-    stock: 30,
+    description: 'Festive ready 2-piece set featuring a flared gold-printed kurti with intricate Marwar Gota-Patti border and matching straight-cut cotton pants with elasticated waistband.',
+    fabric: 'Pure Cotton with Zari Gota Trims',
+    care: 'Hand wash cold or dry clean.',
+    sizes: ['S', 'M', 'L', 'XL'],
+    colors: [{ name: 'Peacock Blue', hex: '#1C3F60' }],
+    stock: 35,
     rating: 4.9,
-    reviewsCount: 78,
-    isBestSeller: true
-  },
-  {
-    id: 'prod-wst-3',
-    name: 'Retro 90s Wide Leg High-Waisted Tailored Trousers',
-    sku: 'GLM-WST-003',
-    category: 'western',
-    subcategory: 'Trousers',
-    price: 1699,
-    originalPrice: 2299,
-    priceTier: 'everyday',
-    images: [
-      'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=800&q=80'
-    ],
-    description: 'Flattering front pleats, comfortable stretch waistband and an effortlessly elongating wide leg silhouette. The essential campus to boardroom trouser.',
-    fabric: 'Poly-Viscose Twill with 3% Spandex',
-    care: 'Machine wash warm, tumble dry low.',
-    sizes: ['24', '26', '28', '30', '32'],
-    colors: [
-      { name: 'Oatmeal Beige', hex: '#E3DAC9' },
-      { name: 'Charcoal Black', hex: '#292329' }
-    ],
-    stock: 40,
-    rating: 4.7,
-    reviewsCount: 65,
-    isCollegeGirlEdit: true
-  },
-  {
-    id: 'prod-wst-4',
-    name: 'Sorbet Tweed Blazer & Pleated Skort Co-ord Set',
-    sku: 'GLM-WST-004',
-    category: 'western',
-    subcategory: 'Co-ord sets',
-    price: 3899,
-    originalPrice: 4999,
-    priceTier: 'premium',
-    images: [
-      'https://images.unsplash.com/photo-1551803091-e20673f15770?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80'
-    ],
-    description: 'Old money pastel aesthetic made modern. Soft pastel pink woven tweed cropped jacket with pearl-finish buttons and matching safety-lined pleated skort.',
-    fabric: 'Bouclé Tweed with Full Satin Lining',
-    care: 'Dry clean only.',
-    sizes: ['XS', 'S', 'M', 'L'],
-    colors: [{ name: 'Baby Pink Tweed', hex: '#F6CBD5' }],
-    stock: 20,
-    rating: 4.9,
-    reviewsCount: 43,
-    isBestSeller: true
-  },
-  {
-    id: 'prod-wst-5',
-    name: 'Cottagecore Floral Milkmaid Puff-Sleeve Crop Top',
-    sku: 'GLM-WST-005',
-    category: 'western',
-    subcategory: 'Tops',
-    price: 699,
-    originalPrice: 999,
-    priceTier: 'affordable',
-    images: [
-      'https://images.unsplash.com/photo-1485968579580-b6d095142e6e?auto=format&fit=crop&w=800&q=80'
-    ],
-    description: 'Sweetheart gathered bust, elasticated puff sleeves that can be worn on or off-shoulder, and smocked back panel for a flexible fit.',
-    fabric: '100% Lightweight Cotton Poplin',
-    care: 'Machine wash cold.',
-    sizes: ['XS', 'S', 'M', 'L', 'XL'],
-    colors: [{ name: 'Floral Blush', hex: '#FAD4D8' }],
-    stock: 75,
-    rating: 4.6,
-    reviewsCount: 156,
-    isCollegeGirlEdit: true
-  },
-  {
-    id: 'prod-wst-6',
-    name: 'Haute Couture Crystal-Embellished Silk Blazer Dress',
-    sku: 'GLM-WST-006',
-    category: 'western',
-    subcategory: 'Party wear',
-    price: 18500,
-    originalPrice: 22000,
-    priceTier: 'exclusive',
-    images: [
-      'https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&w=800&q=80'
-    ],
-    description: 'Structured double-breasted tuxedo dress in pure silk crepe with hand-placed Swarovski crystal lapel cascades. Tailored to perfection.',
-    fabric: '100% Pure Mulberry Silk Crepe',
-    care: 'Specialist dry clean.',
-    sizes: ['XS', 'S', 'M'],
-    colors: [{ name: 'Onyx Black', hex: '#1C1B1B' }],
-    stock: 5,
-    rating: 5.0,
-    reviewsCount: 14
+    reviewsCount: 160,
+    isFestive: true
   },
 
-  // ===================== ACCESSORIES =====================
+  // ===================== JEANS & BOTTOMS =====================
+  {
+    id: 'prod-wst-jeans',
+    name: 'Gen-Z High-Waisted Wide Leg Baggy Denim Jeans',
+    sku: 'GLM-JNS-001',
+    category: 'western',
+    subcategory: 'Jeans',
+    price: 599,
+    originalPrice: 1299,
+    priceTier: 'affordable',
+    images: [
+      'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=800&q=80'
+    ],
+    description: 'The viral high-rise baggy jeans cut specifically for styling with Indian short kurtis and crop tops. Non-stretch durable premium cotton denim with deep front & back pockets.',
+    fabric: '100% Heavy Cotton Denim (12 oz)',
+    care: 'Machine wash cold inside out.',
+    sizes: ['26', '28', '30', '32', '34'],
+    colors: [
+      { name: 'Light Wash Vintage Blue', hex: '#A3C1AD' },
+      { name: 'Medium Indigo', hex: '#3E5F8A' }
+    ],
+    stock: 80,
+    rating: 4.9,
+    reviewsCount: 420,
+    isBestSeller: true,
+    isCollegeGirlEdit: true
+  },
+
+  // ===================== RAJASTHANI EARRINGS & ACCESSORIES =====================
   {
     id: 'prod-acc-1',
-    name: 'Gulmohar 18K Gold-Plated Filigree Jhumkas',
-    sku: 'GLM-ACC-001',
+    name: 'Rajasthani 18K Gold Plated Minakari Lotus Chandbali Jhumkas',
+    sku: 'GLM-JWL-001',
     category: 'accessories',
     subcategory: 'Jhumkas',
-    price: 599,
-    originalPrice: 899,
+    price: 499,
+    originalPrice: 799,
     priceTier: 'affordable',
     images: [
       'https://images.unsplash.com/photo-1630019852942-f89202989a59?auto=format&fit=crop&w=800&q=80',
       'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=800&q=80'
     ],
-    description: 'Lightweight traditional Indian jhumkas with intricate lattice work and freshwater seed pearl drops. Skin-friendly hypoallergenic brass base.',
-    fabric: '18K Gold micron plated brass & pearl drops',
-    care: 'Keep away from water, perfumes and cosmetics. Store in velvet pouch.',
-    sizes: ['One Size (4.5cm drop)'],
-    colors: [{ name: 'Antique Gold', hex: '#D4AF37' }],
-    stock: 120,
+    description: 'Authentic Jaipur Meenakari hand-enameled lotus motif with dual-bell jhumkis and tiny freshwater pearl clusters. Nickel-free lightweight alloy suitable for all-day wear.',
+    fabric: '18K Gold Micron Plated Brass & Enamel',
+    care: 'Wipe dry with clean cloth. Keep away from perfumes.',
+    sizes: ['Free Size (5cm drop)'],
+    colors: [{ name: 'Pink & Mint Meena', hex: '#F48FB1' }],
+    stock: 140,
     rating: 4.9,
-    reviewsCount: 310,
+    reviewsCount: 390,
     isBestSeller: true,
     isCollegeGirlEdit: true
   },
   {
     id: 'prod-acc-2',
-    name: 'Celeste Dainty Stacking Zirconia Tennis Bracelet',
-    sku: 'GLM-ACC-002',
+    name: 'Jaipuri Vintage Oxidised Silver Ghungroo Drop Jhumkis',
+    sku: 'GLM-JWL-002',
     category: 'accessories',
-    subcategory: 'Bracelets',
-    price: 799,
-    originalPrice: 1299,
+    subcategory: 'Jhumkas',
+    price: 499,
+    originalPrice: 699,
     priceTier: 'affordable',
     images: [
       'https://images.unsplash.com/photo-1611591475155-426ea7b18fc9?auto=format&fit=crop&w=800&q=80'
     ],
-    description: 'Ultra-sparkling AAA Austrian zirconia stones handset in rhodium and rose gold plated hypoallergenic links. Includes adjustable extender chain.',
-    fabric: 'Rhodium & Rose Gold Micron Plating',
-    care: 'Wipe with soft chamois cloth.',
-    sizes: ['Adjustable (6" to 8")'],
-    colors: [
-      { name: 'Rose Gold', hex: '#ECC5C0' },
-      { name: 'Silver Rhodium', hex: '#E5E4E2' }
-    ],
-    stock: 90,
+    description: 'Classic boho silver oxidised jhumka earrings featuring embossed peacock dome, musical tiny ghungroos, and filigree hanging bells. The quintessential college kurti companion.',
+    fabric: 'German Silver Oxidised Alloy',
+    care: 'Store in airtight pouch.',
+    sizes: ['One Size (4.5cm drop)'],
+    colors: [{ name: 'Antique Silver', hex: '#C0C0C0' }],
+    stock: 120,
     rating: 4.8,
-    reviewsCount: 205,
+    reviewsCount: 280,
     isCollegeGirlEdit: true
   },
   {
     id: 'prod-acc-3',
-    name: 'Kundan Meenakari Handcrafted Choker & Earring Set',
-    sku: 'GLM-ACC-003',
+    name: 'Kundan Pearl Traditional Rajasthani Stud Chandbalis',
+    sku: 'GLM-JWL-003',
     category: 'accessories',
-    subcategory: 'Necklaces',
-    price: 2499,
-    originalPrice: 3499,
-    priceTier: 'everyday',
+    subcategory: 'Earrings',
+    price: 499,
+    originalPrice: 849,
+    priceTier: 'affordable',
     images: [
       'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=800&q=80'
     ],
-    description: 'Regal bridal-party choker set with hand-painted pastel pink Meenakari back and uncut Kundan stones finished with cluster bead droplets.',
-    fabric: 'Brass base, Glass Kundan, Meenakari Enamel',
-    care: 'Dry storage in Glamora jewelry box.',
-    sizes: ['Adjustable Dori Choker + 5cm Earrings'],
-    colors: [{ name: 'Pastel Rose Gold', hex: '#E2A9B8' }],
-    stock: 25,
+    description: 'Uncut glass Kundan stones set in gold foil with crescent moon drop and pearl tassels. Elevates any simple cotton kurti into festive elegance.',
+    fabric: 'Brass Kundan with Pearl Drops',
+    care: 'Store in padded jewelry box.',
+    sizes: ['Standard Size'],
+    colors: [{ name: 'Gold & Ivory', hex: '#D4AF37' }],
+    stock: 90,
     rating: 4.9,
-    reviewsCount: 88,
-    isFestive: true
+    reviewsCount: 175
   },
   {
     id: 'prod-acc-4',
-    name: 'The Croissant Vegan Leather Dumpling Sling Bag',
-    sku: 'GLM-ACC-004',
+    name: 'Jaipur Block-Printed Canvas Everyday College Tote Bag',
+    sku: 'GLM-BAG-001',
     category: 'accessories',
-    subcategory: 'Sling bags',
-    price: 1499,
-    originalPrice: 1999,
-    priceTier: 'everyday',
-    images: [
-      'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=800&q=80'
-    ],
-    description: 'Ruched cloud-soft vegan leather bag with gold chunky chain and detachable crossbody strap. Fits iPhone Pro Max, lip gloss, wallet and keys.',
-    fabric: 'Premium Cruelty-Free PU Leather',
-    care: 'Wipe clean with a damp cloth.',
-    sizes: ['Compact (24cm x 15cm x 8cm)'],
-    colors: [
-      { name: 'Soft Latte', hex: '#DECBB7' },
-      { name: 'Blush Cream', hex: '#F9ECE5' },
-      { name: 'Noir', hex: '#292329' }
-    ],
-    stock: 50,
-    rating: 4.8,
-    reviewsCount: 164,
-    isCollegeGirlEdit: true,
-    isBestSeller: true
-  },
-  {
-    id: 'prod-acc-5',
-    name: 'Silk Organza Bow & Pearl Hair Claw Clip Duo',
-    sku: 'GLM-ACC-005',
-    category: 'accessories',
-    subcategory: 'Hair accessories',
+    subcategory: 'Handbags',
     price: 499,
+    originalPrice: 799,
     priceTier: 'affordable',
     images: [
-      'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=800&q=80'
+      'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80'
     ],
-    description: 'French girl hair essentials: one oversized double-layered organza ribbon bow clip plus one pearl-encrusted acetate French grip claw.',
-    fabric: 'Organza Ribbon & Cellulose Acetate',
-    care: 'Store in dry accessory pouch.',
-    sizes: ['Standard Clip Duo'],
-    colors: [{ name: 'Blush & Pearl White', hex: '#FADBD8' }],
-    stock: 150,
-    rating: 4.7,
-    reviewsCount: 180,
-    isCollegeGirlEdit: true
-  },
-
-  // ===================== FOOTWEAR =====================
-  {
-    id: 'prod-ftw-1',
-    name: 'Zari Mukaish Hand-Embroidered Juttis with Cushion Sole',
-    sku: 'GLM-FTW-001',
-    category: 'footwear',
-    subcategory: 'Flats',
-    price: 1599,
-    originalPrice: 2199,
-    priceTier: 'everyday',
-    images: [
-      'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=800&q=80'
-    ],
-    description: 'Double padded soft foam sole that guarantees zero shoe-bites. Genuine leather lining with gold mukaish tikki hand embroidery on satin silk.',
-    fabric: 'Satin Silk upper with Genuine Leather lining & Memory Foam Sole',
-    care: 'Dry clean only. Use butter paper when storing.',
-    sizes: ['36 (IND 3)', '37 (IND 4)', '38 (IND 5)', '39 (IND 6)', '40 (IND 7)', '41 (IND 8)'],
-    colors: [
-      { name: 'Rose Gold', hex: '#ECC5C0' },
-      { name: 'Champagne', hex: '#F3E5AB' }
-    ],
-    stock: 35,
-    rating: 4.9,
-    reviewsCount: 142,
-    isFestive: true
-  },
-  {
-    id: 'prod-ftw-2',
-    name: 'Cloud-Walk Minimalist Chunky Platform Sneakers',
-    sku: 'GLM-FTW-002',
-    category: 'footwear',
-    subcategory: 'Sneakers',
-    price: 2299,
-    originalPrice: 2999,
-    priceTier: 'everyday',
-    images: [
-      'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=800&q=80'
-    ],
-    description: 'Lightweight EVA 4.5cm platform sole with pastel blush accent panels. Ultra-comfortable for long college campus walks and city shopping.',
-    fabric: 'Vegan Leather & Breathable Mesh with EVA Sole',
-    care: 'Spot clean with sneaker wipe.',
-    sizes: ['36', '37', '38', '39', '40'],
-    colors: [{ name: 'Blush White', hex: '#FFF2F5' }],
-    stock: 45,
+    description: 'Eco-friendly 100% thick canvas tote bag featuring Sanganeri floral block print. Fits 14-inch laptops, college notebooks, water bottles, and makeup pouch with secure top zipper.',
+    fabric: 'Heavy Duty 100% Cotton Canvas',
+    care: 'Machine washable.',
+    sizes: ['Spacious (38cm x 34cm)'],
+    colors: [{ name: 'Rose & Natural Cream', hex: '#EED9D5' }],
+    stock: 75,
     rating: 4.8,
-    reviewsCount: 98,
+    reviewsCount: 145,
     isCollegeGirlEdit: true
-  },
-  {
-    id: 'prod-ftw-3',
-    name: 'Starlight Metallic Strappy Block Heel Sandals',
-    sku: 'GLM-FTW-003',
-    category: 'footwear',
-    subcategory: 'Sandals',
-    price: 1999,
-    originalPrice: 2699,
-    priceTier: 'everyday',
-    images: [
-      'https://images.unsplash.com/photo-1535043934128-cf0b28d52f95?auto=format&fit=crop&w=800&q=80'
-    ],
-    description: 'Comfortable 2.5-inch sturdy flared block heel with delicate crisscross ankle straps. Pairs seamlessly with both sarees and cocktail dresses.',
-    fabric: 'Metallic Vegan Leather with Microfiber insole',
-    care: 'Wipe with soft cloth.',
-    sizes: ['36', '37', '38', '39', '40'],
-    colors: [
-      { name: 'Soft Gold', hex: '#D4AF37' },
-      { name: 'Blush Metallic', hex: '#D98BA5' }
-    ],
-    stock: 30,
-    rating: 4.7,
-    reviewsCount: 80
   }
 ];
 
-// ===================== THE 8 EXCLUSIVE GLAMORA COMBOS =====================
+// ===================== HIGH-DEMAND CURATED COMBOS (RAJASTHAN & KURTI SPECIAL) =====================
 export const MOCK_COMBOS: Combo[] = [
+  // 1. KURTI + BAGGY JEANS COMBO (EXPLICIT USER REQUEST @ ₹699)
   {
-    id: 'combo-1',
-    title: 'DESI DARLING COMBO',
-    tagline: 'Kurti + Matching Jhumkas + Zirconia Stacking Bracelet',
-    description: 'The definitive ethnic glow up for college fests, casual outings, and festive occasions. Includes our top-rated Gulabi handblock kurti, 18K gold-plated jhumkas, and a sparkle stacking bracelet.',
-    badge: 'Trending Best Seller',
+    id: 'combo-kurti-jeans',
+    title: 'KURTI + BAGGY JEANS COMBO',
+    tagline: 'Authentic Jaipuri Cotton Kurti + High-Waisted Wide Leg Baggy Denim Jeans',
+    description: 'The ultimate viral Gen-Z college outfit! Pair our top-selling Jaipuri printed kurti with trending relaxed-fit wide leg denim jeans. Comfortable for 8-hour campus days, stylish for canteen hangs.',
+    badge: 'VIRAL SUPER DEAL • FLAT ₹699',
+    image: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=900&q=85',
+    items: [
+      {
+        productId: 'prod-ind-4',
+        name: 'Bandhani Mirror-Work Short Flared Kurti',
+        category: 'Kurti',
+        individualPrice: 499,
+        image: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=600&q=80',
+        availableSizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL']
+      },
+      {
+        productId: 'prod-wst-jeans',
+        name: 'High-Waisted Wide Leg Baggy Denim Jeans',
+        category: 'Denim Jeans',
+        individualPrice: 599,
+        image: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=600&q=80',
+        availableSizes: ['26', '28', '30', '32', '34']
+      }
+    ],
+    comboPrice: 699,
+    originalTotal: 1998,
+    savings: 1299,
+    stock: 45,
+    rating: 4.9,
+    reviewsCount: 520
+  },
+
+  // 2. JAIPUR SANGANERI KURTI + MEENAKARI JHUMKAS @ ₹499
+  {
+    id: 'combo-sanganeri-jhumka',
+    title: 'SANGANERI KURTI + MINAKARI JHUMKA COMBO',
+    tagline: '100% Mulmul Handblock Kurti + 18K Gold Plated Jaipur Minakari Jhumkas',
+    description: 'The golden Rajasthani everyday pair. Featherlight breathable mulmul kurti in floral prints matched with hand-enameled lotus drop Chandbali jhumkas.',
+    badge: 'DHAMAKA DEAL • ONLY ₹499',
     image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=900&q=85',
     items: [
       {
         productId: 'prod-ind-1',
-        name: 'Gulabi Rose Handblock Tiered Anarkali Kurti',
-        category: 'Indian Wear',
-        individualPrice: 1299,
+        name: 'Jaipuri Sanganeri Handblock Mulmul Kurti',
+        category: 'Kurti',
+        individualPrice: 499,
         image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80',
         availableSizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL']
       },
       {
         productId: 'prod-acc-1',
-        name: 'Gulmohar 18K Gold-Plated Filigree Jhumkas',
-        category: 'Jewelry',
-        individualPrice: 599,
-        image: 'https://images.unsplash.com/photo-1630019852942-f89202989a59?auto=format&fit=crop&w=600&q=80',
-        availableSizes: ['One Size']
-      },
-      {
-        productId: 'prod-acc-2',
-        name: 'Celeste Dainty Stacking Zirconia Bracelet',
-        category: 'Jewelry',
-        individualPrice: 799,
-        image: 'https://images.unsplash.com/photo-1611591475155-426ea7b18fc9?auto=format&fit=crop&w=600&q=80',
-        availableSizes: ['Adjustable']
-      }
-    ],
-    comboPrice: 1999,
-    originalTotal: 2697,
-    savings: 698,
-    stock: 25,
-    rating: 4.9,
-    reviewsCount: 340
-  },
-  {
-    id: 'combo-2',
-    title: 'COLLEGE GIRL COMBO',
-    tagline: 'Trendy Top + Earrings + Bracelet + Dumpling Sling Bag',
-    description: 'Your complete Monday morning lecture-ready fit in one click. Features our Parisienne knit top, Croissant dumpling sling bag, and matching rose gold minimal accessories.',
-    badge: 'Campus Favorite',
-    image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=85',
-    items: [
-      {
-        productId: 'prod-wst-1',
-        name: 'Parisienne French-Cuff Corset Knit Top',
-        category: 'Western Top',
-        individualPrice: 999,
-        image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=600&q=80',
-        availableSizes: ['XS', 'S', 'M', 'L']
-      },
-      {
-        productId: 'prod-acc-4',
-        name: 'The Croissant Vegan Leather Dumpling Sling Bag',
-        category: 'Handbag',
-        individualPrice: 1499,
-        image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=600&q=80',
-        availableSizes: ['One Size']
-      },
-      {
-        productId: 'prod-acc-2',
-        name: 'Celeste Dainty Stacking Zirconia Bracelet',
-        category: 'Jewelry',
-        individualPrice: 799,
-        image: 'https://images.unsplash.com/photo-1611591475155-426ea7b18fc9?auto=format&fit=crop&w=600&q=80',
-        availableSizes: ['Adjustable']
-      },
-      {
-        productId: 'prod-acc-5',
-        name: 'Silk Organza Bow & Pearl Hair Claw Clip Duo',
-        category: 'Hair Care',
+        name: '18K Gold Plated Minakari Lotus Chandbali Jhumkas',
+        category: 'Jhumkas',
         individualPrice: 499,
-        image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=600&q=80',
+        image: 'https://images.unsplash.com/photo-1630019852942-f89202989a59?auto=format&fit=crop&w=600&q=80',
         availableSizes: ['Free Size']
       }
     ],
-    comboPrice: 2799,
-    originalTotal: 3796,
-    savings: 997,
-    stock: 20,
-    rating: 4.8,
-    reviewsCount: 215
+    comboPrice: 499,
+    originalTotal: 1498,
+    savings: 999,
+    stock: 60,
+    rating: 4.9,
+    reviewsCount: 410
   },
+
+  // 3. LEHERIYA PINK ANARKALI + KUNDAN CHANDBALI COMBO @ ₹549
   {
-    id: 'combo-3',
-    title: 'ETHNIC GLOW COMBO',
-    tagline: 'Ethnic Silk Suit + Filigree Jhumkas + Handmade Bangles',
-    description: 'Radiate pure elegance at poojas, weddings, and family gatherings. Featuring our Noor Chanderi suit set paired with artisan handcrafted Kundan and pearl jewelry.',
-    badge: 'Festive Essential',
+    id: 'combo-leheriya-kundan',
+    title: 'RAJASTHANI LEHERIYA + KUNDAN CHANDBALI COMBO',
+    tagline: 'Pink Flared Leheriya Kurti + Uncut Kundan Pearl Chandbalis',
+    description: 'Traditional Marwari celebration fit! Luminous pink Leheriya flared tiered kurti paired with sparkling Kundan crescent moon earrings.',
+    badge: 'FESTIVE EDIT • ₹549',
     image: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=900&q=85',
     items: [
       {
         productId: 'prod-ind-2',
-        name: 'Noor Chanderi Silk Kurti & Afghan Pant Set',
-        category: 'Ethnic Suit Set',
-        individualPrice: 3499,
+        name: 'Rajasthani Leheriya Pink Tiered Flared Kurti',
+        category: 'Flared Kurti',
+        individualPrice: 499,
         image: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=600&q=80',
+        availableSizes: ['S', 'M', 'L', 'XL', 'XXL']
+      },
+      {
+        productId: 'prod-acc-3',
+        name: 'Kundan Pearl Traditional Chandbalis',
+        category: 'Earrings',
+        individualPrice: 499,
+        image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=600&q=80',
+        availableSizes: ['Free Size']
+      }
+    ],
+    comboPrice: 549,
+    originalTotal: 1698,
+    savings: 1149,
+    stock: 35,
+    rating: 4.8,
+    reviewsCount: 290
+  },
+
+  // 4. BAGRU INDIGO KURTI + OXIDISED AFGHANI JHUMKAS @ ₹499
+  {
+    id: 'combo-bagru-silver',
+    title: 'BAGRU INDIGO KURTI + OXIDISED JHUMKI COMBO',
+    tagline: 'Bagru Dabu Print Kurti + Vintage Ghungroo Drop Oxidised Jhumkis',
+    description: 'The college arts & literature aesthetic! Hand-dyed natural indigo A-line kurti with earthy Dabu prints combined with ringing ghungroo drop silver jhumkis.',
+    badge: 'CAMPUS TREND • ONLY ₹499',
+    image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=900&q=85',
+    items: [
+      {
+        productId: 'prod-ind-3',
+        name: 'Bagru Dabu Print Natural Indigo A-Line Kurti',
+        category: 'Kurti',
+        individualPrice: 499,
+        image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=600&q=80',
+        availableSizes: ['XS', 'S', 'M', 'L', 'XL']
+      },
+      {
+        productId: 'prod-acc-2',
+        name: 'Jaipuri Vintage Oxidised Silver Ghungroo Jhumkis',
+        category: 'Earrings',
+        individualPrice: 499,
+        image: 'https://images.unsplash.com/photo-1611591475155-426ea7b18fc9?auto=format&fit=crop&w=600&q=80',
+        availableSizes: ['Free Size']
+      }
+    ],
+    comboPrice: 499,
+    originalTotal: 1598,
+    savings: 1099,
+    stock: 40,
+    rating: 4.9,
+    reviewsCount: 380
+  },
+
+  // 5. MARWAR GOTA PATTI SUIT SET + JHUMKA COMBO @ ₹799
+  {
+    id: 'combo-gota-suit',
+    title: 'MARWAR GOTA SUIT + JHUMKA 3-PIECE COMBO',
+    tagline: 'Flared Gold Printed Kurti + Cotton Pant + Gold Minakari Jhumkis',
+    description: 'Complete festive ready head-to-toe ensemble. Shimmering gota border kurti, tailored pants and matching Minakari earrings in one luxury gift package.',
+    badge: 'BESTSELLER FESTIVE • ₹799',
+    image: 'https://images.unsplash.com/photo-1610030469668-932d0c64c781?auto=format&fit=crop&w=900&q=85',
+    items: [
+      {
+        productId: 'prod-ind-5',
+        name: 'Marwar Gota-Patti Flared Kurti Pant Set',
+        category: 'Suit Set',
+        individualPrice: 799,
+        image: 'https://images.unsplash.com/photo-1610030469668-932d0c64c781?auto=format&fit=crop&w=600&q=80',
         availableSizes: ['S', 'M', 'L', 'XL']
       },
       {
         productId: 'prod-acc-1',
-        name: 'Gulmohar 18K Gold-Plated Filigree Jhumkas',
-        category: 'Jewelry',
-        individualPrice: 599,
+        name: '18K Gold Plated Minakari Lotus Chandbali Jhumkas',
+        category: 'Jhumkas',
+        individualPrice: 499,
         image: 'https://images.unsplash.com/photo-1630019852942-f89202989a59?auto=format&fit=crop&w=600&q=80',
-        availableSizes: ['One Size']
-      },
-      {
-        productId: 'prod-ftw-1',
-        name: 'Zari Mukaish Hand-Embroidered Juttis',
-        category: 'Footwear',
-        individualPrice: 1599,
-        image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=600&q=80',
-        availableSizes: ['36', '37', '38', '39', '40', '41']
+        availableSizes: ['Free Size']
       }
     ],
-    comboPrice: 4599,
-    originalTotal: 5697,
-    savings: 1098,
-    stock: 18,
+    comboPrice: 799,
+    originalTotal: 2298,
+    savings: 1499,
+    stock: 25,
     rating: 5.0,
-    reviewsCount: 184
+    reviewsCount: 260
   },
+
+  // 6. COLLEGE TRIPLE ESSENTIALS: SHORT KURTI + JHUMKAS + CANVAS TOTE @ ₹649
   {
-    id: 'combo-4',
-    title: 'BESTIE GIFT BOX',
-    tagline: 'Earrings + Bracelet + Hair Clips + Keepsake Luxury Gift Box',
-    description: 'The ultimate birthday or friendship day surprise. Arrives wrapped in soft pink satin ribbon with a personalized handwritten calligraphy note and scented floral tissue paper.',
-    badge: 'Top Gift Idea',
-    image: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=900&q=85',
-    items: [
-      {
-        productId: 'prod-acc-1',
-        name: 'Gulmohar 18K Gold-Plated Filigree Jhumkas',
-        category: 'Jewelry',
-        individualPrice: 599,
-        image: 'https://images.unsplash.com/photo-1630019852942-f89202989a59?auto=format&fit=crop&w=600&q=80',
-        availableSizes: ['One Size']
-      },
-      {
-        productId: 'prod-acc-2',
-        name: 'Celeste Dainty Stacking Zirconia Bracelet',
-        category: 'Jewelry',
-        individualPrice: 799,
-        image: 'https://images.unsplash.com/photo-1611591475155-426ea7b18fc9?auto=format&fit=crop&w=600&q=80',
-        availableSizes: ['Adjustable']
-      },
-      {
-        productId: 'prod-acc-5',
-        name: 'Silk Organza Bow & Pearl Hair Claw Clip Duo',
-        category: 'Hair Care',
-        individualPrice: 499,
-        image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=600&q=80',
-        availableSizes: ['Free Size']
-      }
-    ],
-    comboPrice: 1499,
-    originalTotal: 1897,
-    savings: 398,
-    stock: 40,
-    rating: 4.9,
-    reviewsCount: 290
-  },
-  {
-    id: 'combo-5',
-    title: 'NIGHT OUT COMBO',
-    tagline: 'Western Outfit + Dumpling Bag + Block Heels + Stacking Jewelry',
-    description: 'Effortless show-stopping glamour for club nights, birthday bashes, and fine dining. Features our Aura Satin cowl dress, croissant clutch, and shimmering block heels.',
-    badge: 'Nightlife Edit',
-    image: 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?auto=format&fit=crop&w=900&q=85',
-    items: [
-      {
-        productId: 'prod-wst-2',
-        name: 'Aura Satin Cowl Neck Backless Midi Dress',
-        category: 'Western Dress',
-        individualPrice: 2199,
-        image: 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?auto=format&fit=crop&w=600&q=80',
-        availableSizes: ['XS', 'S', 'M', 'L']
-      },
-      {
-        productId: 'prod-acc-4',
-        name: 'The Croissant Vegan Leather Dumpling Sling Bag',
-        category: 'Handbag',
-        individualPrice: 1499,
-        image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=600&q=80',
-        availableSizes: ['One Size']
-      },
-      {
-        productId: 'prod-ftw-3',
-        name: 'Starlight Metallic Strappy Block Heel Sandals',
-        category: 'Footwear',
-        individualPrice: 1999,
-        image: 'https://images.unsplash.com/photo-1535043934128-cf0b28d52f95?auto=format&fit=crop&w=600&q=80',
-        availableSizes: ['36', '37', '38', '39', '40']
-      }
-    ],
-    comboPrice: 4799,
-    originalTotal: 5697,
-    savings: 898,
-    stock: 15,
-    rating: 4.9,
-    reviewsCount: 165
-  },
-  {
-    id: 'combo-6',
-    title: 'EVERYDAY ESSENTIALS',
-    tagline: 'Casual Crop Top + Dainty Jhumkas + Hair Bow Duo',
-    description: 'The easiest capsule wardrobe pairing under ₹1,500. Slip into lightweight cotton comfort with elevated delicate accessories that lift your everyday mood.',
-    badge: 'Budget Magic',
-    image: 'https://images.unsplash.com/photo-1485968579580-b6d095142e6e?auto=format&fit=crop&w=900&q=85',
-    items: [
-      {
-        productId: 'prod-wst-5',
-        name: 'Cottagecore Floral Milkmaid Puff-Sleeve Top',
-        category: 'Everyday Top',
-        individualPrice: 699,
-        image: 'https://images.unsplash.com/photo-1485968579580-b6d095142e6e?auto=format&fit=crop&w=600&q=80',
-        availableSizes: ['XS', 'S', 'M', 'L', 'XL']
-      },
-      {
-        productId: 'prod-acc-1',
-        name: 'Gulmohar 18K Gold-Plated Filigree Jhumkas',
-        category: 'Jewelry',
-        individualPrice: 599,
-        image: 'https://images.unsplash.com/photo-1630019852942-f89202989a59?auto=format&fit=crop&w=600&q=80',
-        availableSizes: ['One Size']
-      },
-      {
-        productId: 'prod-acc-5',
-        name: 'Silk Organza Bow & Pearl Hair Claw Clip Duo',
-        category: 'Hair Care',
-        individualPrice: 499,
-        image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=600&q=80',
-        availableSizes: ['Free Size']
-      }
-    ],
-    comboPrice: 1399,
-    originalTotal: 1797,
-    savings: 398,
-    stock: 50,
-    rating: 4.7,
-    reviewsCount: 220
-  },
-  {
-    id: 'combo-7',
-    title: 'FESTIVE EDIT',
-    tagline: 'Tissue Silk Saree + Kundan Choker Set + Embroidered Juttis',
-    description: 'Curated for the Indian festive calendar: Diwali, Eid, Rakhi and intimate sangeets. The molten gold tissue drape teamed with regal uncut Kundan jewelry.',
-    badge: 'Festive Limited Edition',
-    image: 'https://images.unsplash.com/photo-1610030469668-932d0c64c781?auto=format&fit=crop&w=900&q=85',
+    id: 'combo-college-tote',
+    title: 'COLLEGE GIRL TRIPLE COMBO',
+    tagline: 'Short Bandhani Kurti + Oxidised Jhumkas + Block-Print Canvas Tote',
+    description: 'Everything you need for college in one box. Trending short kurti, oxidised jhumkis, and a heavy-duty zipper canvas bag for your books and laptop.',
+    badge: 'COLLEGE HIT • ₹649',
+    image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=900&q=85',
     items: [
       {
         productId: 'prod-ind-4',
-        name: 'Chandani Tissue Silk Festive Saree',
-        category: 'Saree',
-        individualPrice: 4999,
-        image: 'https://images.unsplash.com/photo-1610030469668-932d0c64c781?auto=format&fit=crop&w=600&q=80',
-        availableSizes: ['Free Size']
-      },
-      {
-        productId: 'prod-acc-3',
-        name: 'Kundan Meenakari Handcrafted Choker Set',
-        category: 'Jewelry Set',
-        individualPrice: 2499,
-        image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=600&q=80',
-        availableSizes: ['Adjustable']
-      },
-      {
-        productId: 'prod-ftw-1',
-        name: 'Zari Mukaish Hand-Embroidered Juttis',
-        category: 'Footwear',
-        individualPrice: 1599,
-        image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=600&q=80',
-        availableSizes: ['36', '37', '38', '39', '40', '41']
-      }
-    ],
-    comboPrice: 7499,
-    originalTotal: 9097,
-    savings: 1598,
-    stock: 12,
-    rating: 5.0,
-    reviewsCount: 145
-  },
-  {
-    id: 'combo-8',
-    title: 'GLAMORA LUXE BOX',
-    tagline: 'Tweed Blazer Skort + Dumpling Bag + Block Heels + Luxury Box',
-    description: 'The pinnacle of affordable luxury. A statement bouclé tweed co-ord set combined with luxury footwear, cruelty-free leather handbag and magnetic rigid gift chest.',
-    badge: 'Collector Edition',
-    image: 'https://images.unsplash.com/photo-1551803091-e20673f15770?auto=format&fit=crop&w=900&q=85',
-    items: [
-      {
-        productId: 'prod-wst-4',
-        name: 'Sorbet Tweed Blazer & Pleated Skort Set',
-        category: 'Co-ord Set',
-        individualPrice: 3899,
-        image: 'https://images.unsplash.com/photo-1551803091-e20673f15770?auto=format&fit=crop&w=600&q=80',
-        availableSizes: ['XS', 'S', 'M', 'L']
-      },
-      {
-        productId: 'prod-acc-4',
-        name: 'The Croissant Vegan Leather Dumpling Sling Bag',
-        category: 'Handbag',
-        individualPrice: 1499,
-        image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=600&q=80',
-        availableSizes: ['One Size']
-      },
-      {
-        productId: 'prod-ftw-3',
-        name: 'Starlight Metallic Strappy Block Heel Sandals',
-        category: 'Footwear',
-        individualPrice: 1999,
-        image: 'https://images.unsplash.com/photo-1535043934128-cf0b28d52f95?auto=format&fit=crop&w=600&q=80',
-        availableSizes: ['36', '37', '38', '39', '40']
+        name: 'Bandhani Short Flared Peplum Kurti',
+        category: 'Kurti',
+        individualPrice: 499,
+        image: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=600&q=80',
+        availableSizes: ['XS', 'S', 'M', 'L', 'XL']
       },
       {
         productId: 'prod-acc-2',
-        name: 'Celeste Dainty Stacking Zirconia Bracelet',
-        category: 'Jewelry',
-        individualPrice: 799,
+        name: 'Jaipuri Oxidised Ghungroo Jhumkis',
+        category: 'Earrings',
+        individualPrice: 499,
         image: 'https://images.unsplash.com/photo-1611591475155-426ea7b18fc9?auto=format&fit=crop&w=600&q=80',
-        availableSizes: ['Adjustable']
+        availableSizes: ['Free Size']
+      },
+      {
+        productId: 'prod-acc-4',
+        name: 'Jaipur Block-Printed Canvas Tote Bag',
+        category: 'Bag',
+        individualPrice: 499,
+        image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=600&q=80',
+        availableSizes: ['Free Size']
       }
     ],
-    comboPrice: 6999,
-    originalTotal: 8196,
-    savings: 1197,
-    stock: 10,
-    rating: 5.0,
-    reviewsCount: 92
+    comboPrice: 649,
+    originalTotal: 2197,
+    savings: 1548,
+    stock: 30,
+    rating: 4.9,
+    reviewsCount: 310
   }
 ];
 
 export const MOCK_REVIEWS: Review[] = [
   {
     id: 'rev-1',
-    userName: 'Ananya Sharma',
-    city: 'Delhi University, North Campus',
+    userName: 'Kavita Rathore',
+    city: 'Jaipur, Rajasthan',
     rating: 5,
-    date: '2 days ago',
-    comment: 'Ordered the Desi Darling combo for college Diwali mela. Honestly the fabric quality blew me away! The kurti is pure breathable mulmul and the jhumkas did not tarnish even a bit. Got so many compliments in college!',
-    productName: 'DESI DARLING COMBO',
+    date: 'Yesterday',
+    comment: 'Kurti aur baggy jeans wala combo ₹699 me mangwaya tha! Honestly kapda ekdum pure heavy denim aur kurti ka mulmul bohot soft hai. College me sabne poocha kaha se liya!',
+    productName: 'KURTI + BAGGY JEANS COMBO',
     verified: true
   },
   {
     id: 'rev-2',
-    userName: 'Rhea Fernandes',
-    city: 'Bandra, Mumbai',
+    userName: 'Pooja Choudhary',
+    city: 'Jodhpur, Rajasthan',
     rating: 5,
-    date: '1 week ago',
-    comment: 'The Aura Satin dress fits like an absolute dream!! Usually satin clings in all the wrong places, but this has such a high-end drape and weight. Fast delivery too (received in 2 days).',
-    productName: 'Aura Satin Cowl Neck Midi Dress',
+    date: '2 days ago',
+    comment: '₹499 me Jaipuri Kurti ke saath pure Minakari Jhumke mil gaye, I am shocked! Quality is literally 10/10. Deliver bhi 2 din me ho gaya!',
+    productName: 'SANGANERI KURTI + MINAKARI JHUMKA COMBO',
     verified: true
   },
   {
     id: 'rev-3',
-    userName: 'Tanvi Maheshwari',
-    city: 'Jaipur, Rajasthan',
+    userName: 'Simran Shekhawat',
+    city: 'Udaipur, Rajasthan',
     rating: 5,
     date: '3 days ago',
-    comment: 'Sent the Bestie Gift Box to my roommate for her 21st birthday. The box packaging looks like it costs ₹10,000! Rose gold foil detailing, ribbon tie, handwritten card... GLAMORA is now my go-to gift store!',
-    productName: 'BESTIE GIFT BOX',
-    verified: true
-  },
-  {
-    id: 'rev-4',
-    userName: 'Srishti Sen',
-    city: 'Kolkata',
-    rating: 5,
-    date: '5 days ago',
-    comment: 'The memory foam in the juttis is genius. Wore them through a 7-hour sangeet night with zero shoe bites. The mukaish work is so subtle and elegant.',
-    productName: 'Zari Mukaish Embroidered Juttis',
+    comment: 'Leheriya kurti ki flare bohot sundar hai aur Kundan chandbali jhumka bilkul heavy wedding look deta hai. GLAMORA rocks!',
+    productName: 'RAJASTHANI LEHERIYA + KUNDAN CHANDBALI COMBO',
     verified: true
   }
 ];
 
 export const MOCK_COUPONS: Coupon[] = [
   {
-    code: 'GLAMFIRST',
+    code: 'GLAM499',
     discountPercent: 10,
-    maxDiscount: 500,
-    minOrder: 999,
-    description: 'Flat 10% OFF on your first GLAMORA order (Min ₹999)'
+    maxDiscount: 200,
+    minOrder: 499,
+    description: 'Extra 10% OFF on all Rajasthani Kurti Combos (Min ₹499)'
   },
   {
     code: 'COLLEGE15',
     discountPercent: 15,
-    maxDiscount: 750,
-    minOrder: 1499,
-    description: 'Special 15% Student Discount on combos & college wear'
-  },
-  {
-    code: 'FESTIVE20',
-    discountPercent: 20,
-    maxDiscount: 1500,
-    minOrder: 2999,
-    description: 'Festive Season Offer: 20% OFF on orders above ₹2,999'
+    maxDiscount: 300,
+    minOrder: 699,
+    description: 'Flat 15% Student Discount on Kurti + Baggy Jeans'
   }
 ];
-

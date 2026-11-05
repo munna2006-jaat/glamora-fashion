@@ -7,7 +7,6 @@ interface NavbarProps {
   wishlistCount: number;
   onOpenCart: () => void;
   onOpenWishlist: () => void;
-  onOpenAdmin: () => void;
   onOpenTrackOrder: () => void;
   onSelectCategory: (cat: string) => void;
   activeCategory: string;
@@ -20,7 +19,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   wishlistCount,
   onOpenCart,
   onOpenWishlist,
-  onOpenAdmin,
   onOpenTrackOrder,
   onSelectCategory,
   activeCategory,
@@ -32,14 +30,11 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [showSearchModal, setShowSearchModal] = useState(false);
 
   const categories = [
-    { id: 'all', label: 'All Creations' },
-    { id: 'combos', label: '✨ GLAMORA Combos', highlight: true },
-    { id: 'college', label: '🎓 College Edit' },
-    { id: 'indian', label: 'Indian Wear' },
-    { id: 'western', label: 'Western Edit' },
-    { id: 'festive', label: 'Festive & Sarees' },
-    { id: 'accessories', label: 'Accessories' },
-    { id: 'footwear', label: 'Footwear' },
+    { id: 'combos', label: '🔥 Hot Combos (₹499+)', highlight: true },
+    { id: 'kurti_jeans', label: '👖 Kurti + Jeans (₹699)', highlight: true },
+    { id: 'indian', label: '🌸 Jaipuri & Rajasthani Kurtis' },
+    { id: 'accessories', label: '✨ Minakari Jhumkas' },
+    { id: 'all', label: 'All Catalog' },
   ];
 
   const searchResults = searchQuery.trim() === '' ? [] : allProducts.filter(p =>
@@ -152,16 +147,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span className="hidden xl:inline">Track Order</span>
             </button>
 
-            {/* Admin Dashboard */}
-            <button
-              onClick={onOpenAdmin}
-              className="flex items-center gap-1 text-xs text-gray-500 hover:text-glamora-charcoal bg-glamora-cream border border-glamora-blush rounded-full px-2.5 py-1.5 transition"
-              title="Admin Portal"
-            >
-              <Shield className="w-3.5 h-3.5 text-glamora-rose" />
-              <span className="text-[11px] font-semibold">Admin</span>
-            </button>
-
             {/* Wishlist */}
             <button
               onClick={onOpenWishlist}
@@ -246,15 +231,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <MapPin className="w-4 h-4 text-glamora-rose" /> Track My Order
             </button>
-            <button
-              onClick={() => {
-                onOpenAdmin();
-                setMobileMenuOpen(false);
-              }}
-              className="flex items-center gap-1.5 text-gray-600 font-semibold"
-            >
-              <Shield className="w-4 h-4 text-glamora-rose" /> Admin Panel
-            </button>
+            <span className="text-[11px] text-gray-400">100% Cotton & Jaipur Handblock</span>
           </div>
         </div>
       )}

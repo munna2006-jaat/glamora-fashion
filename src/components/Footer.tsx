@@ -4,13 +4,11 @@ import { Sparkles, Heart, ShieldCheck, Truck, RotateCcw, Mail, ArrowRight, Insta
 interface FooterProps {
   onSelectCategory: (cat: string) => void;
   onOpenTrackOrder: () => void;
-  onOpenAdmin: () => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({
   onSelectCategory,
   onOpenTrackOrder,
-  onOpenAdmin,
 }) => {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
@@ -97,11 +95,10 @@ export const Footer: React.FC<FooterProps> = ({
             </h5>
             <ul className="space-y-2.5 text-xs text-gray-300">
               <li><button onClick={onOpenTrackOrder} className="hover:text-glamora-rose transition font-medium">Track Your Order</button></li>
-              <li><span className="text-gray-400">Shipping & Delivery (3-5 Days)</span></li>
+              <li><span className="text-gray-400">Shipping & Delivery (Pan-India)</span></li>
               <li><span className="text-gray-400">7-Day Return & Exchange Policy</span></li>
               <li><span className="text-gray-400">Garment Size Chart & Fit Guide</span></li>
-              <li><span className="text-gray-400">Fabric Care Instructions</span></li>
-              <li><button onClick={onOpenAdmin} className="hover:text-glamora-rose transition text-gray-400">Admin Portal</button></li>
+              <li><span className="text-gray-400">Pure Jaipur Cotton Handblock Authenticity</span></li>
             </ul>
           </div>
 
