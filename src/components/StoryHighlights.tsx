@@ -47,3 +47,4 @@ export const StoryHighlights: React.FC<StoryHighlightsProps> = ({ onSelectCatego
     </section>
   );
 };
+

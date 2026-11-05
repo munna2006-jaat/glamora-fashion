@@ -82,3 +82,4 @@ export const WesternWearSection: React.FC<WesternWearSectionProps> = ({
     </section>
   );
 };
+

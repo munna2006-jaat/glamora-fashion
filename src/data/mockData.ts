@@ -906,3 +906,4 @@ export const MOCK_COUPONS: Coupon[] = [
     description: 'Festive Season Offer: 20% OFF on orders above ₹2,999'
   }
 ];
+

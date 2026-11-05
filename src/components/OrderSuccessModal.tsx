@@ -105,3 +105,4 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
     </div>
   );
 };
+

@@ -94,3 +94,4 @@ export const InstagramFeed: React.FC<InstagramFeedProps> = ({ onShopLook }) => {
     </section>
   );
 };
+

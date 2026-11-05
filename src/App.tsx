@@ -78,7 +78,7 @@ export const App: React.FC = () => {
     localStorage.setItem('glamora_wishlist', JSON.stringify(wishlistIds));
   }, [wishlistIds]);
 
-  // Initial Fetch from API
+  // Initial Fetch from API & Route Check
   const refreshData = async () => {
     try {
       const [resProd, resCombo, resCoup, resRev] = await Promise.all([
@@ -98,6 +98,10 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     refreshData();
+    // Open admin directly if URL is /admin or #admin
+    if (window.location.pathname === '/admin' || window.location.hash === '#admin') {
+      setIsAdminOpen(true);
+    }
   }, []);
 
   const showToast = (msg: string) => {
@@ -228,7 +232,10 @@ export const App: React.FC = () => {
         wishlistCount={wishlistIds.length}
         onOpenCart={() => setIsCartOpen(true)}
         onOpenWishlist={() => setIsWishlistOpen(true)}
-        onOpenAdmin={() => setIsAdminOpen(true)}
+        onOpenAdmin={() => {
+          setIsAdminOpen(true);
+          window.history.pushState(null, '', '/admin');
+        }}
         onOpenTrackOrder={() => {
           setActiveTrackingId('');
           setIsTrackingOpen(true);
@@ -332,7 +339,10 @@ export const App: React.FC = () => {
           setActiveTrackingId('');
           setIsTrackingOpen(true);
         }}
-        onOpenAdmin={() => setIsAdminOpen(true)}
+        onOpenAdmin={() => {
+          setIsAdminOpen(true);
+          window.history.pushState(null, '', '/admin');
+        }}
       />
 
       {/* ================= MODALS & DRAWERS ================= */}
@@ -422,7 +432,10 @@ export const App: React.FC = () => {
       {/* Full Admin Dashboard Hub */}
       <AdminDashboard
         isOpen={isAdminOpen}
-        onClose={() => setIsAdminOpen(false)}
+        onClose={() => {
+          setIsAdminOpen(false);
+          window.history.pushState(null, '', '/');
+        }}
         products={products}
         combos={combos}
         onRefreshData={refreshData}
@@ -433,3 +446,4 @@ export const App: React.FC = () => {
 };
 
 export default App;
+

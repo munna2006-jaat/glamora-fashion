@@ -70,3 +70,4 @@ export const ReviewsWall: React.FC<ReviewsWallProps> = ({ reviews }) => {
     </section>
   );
 };
+

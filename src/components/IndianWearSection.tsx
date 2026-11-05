@@ -82,3 +82,4 @@ export const IndianWearSection: React.FC<IndianWearSectionProps> = ({
     </section>
   );
 };
+

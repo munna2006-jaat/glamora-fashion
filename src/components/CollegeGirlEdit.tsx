@@ -66,3 +66,4 @@ export const CollegeGirlEdit: React.FC<CollegeGirlEditProps> = ({
     </section>
   );
 };
+

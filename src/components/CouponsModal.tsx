@@ -80,3 +80,4 @@ export const CouponsModal: React.FC<CouponsModalProps> = ({
     </div>
   );
 };
+

@@ -126,3 +126,4 @@ export interface Coupon {
   minOrder: number;
   description: string;
 }
+

@@ -54,3 +54,4 @@ export const AccessoriesSection: React.FC<AccessoriesSectionProps> = ({
     </section>
   );
 };
+

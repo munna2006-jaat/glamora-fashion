@@ -102,3 +102,4 @@ export const GiftBoxesSection: React.FC<GiftBoxesSectionProps> = ({
     </section>
   );
 };
+

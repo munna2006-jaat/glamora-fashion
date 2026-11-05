@@ -43,3 +43,4 @@ export const AnnouncementBar: React.FC<{ onOpenCoupons?: () => void }> = ({ onOp
     </div>
   );
 };
+
