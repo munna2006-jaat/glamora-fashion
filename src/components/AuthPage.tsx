@@ -4,6 +4,7 @@ import { User } from '../types';
 
 interface AuthPageProps {
   currentUser: User | null;
+  authNotice?: string;
   onLoginSuccess: (user: User) => void;
   onLogout: () => void;
   onBackToHome: () => void;
@@ -14,6 +15,7 @@ interface AuthPageProps {
 
 export const AuthPage: React.FC<AuthPageProps> = ({
   currentUser,
+  authNotice,
   onLoginSuccess,
   onLogout,
   onBackToHome,
@@ -245,6 +247,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           </p>
         </div>
 
+        {authNotice && (
+          <div className="p-3.5 rounded-2xl bg-glamora-blush/60 border border-glamora-rose text-glamora-charcoal text-xs flex items-center gap-2.5 font-medium shadow-sm">
+            <Sparkles className="w-4 h-4 text-glamora-rose flex-shrink-0 animate-pulse" />
+            <span>{authNotice}</span>
+          </div>
+        )}
+
         {/* Tab Switcher */}
         <div className="grid grid-cols-2 p-1.5 bg-gray-100 rounded-2xl text-xs font-bold">
           <button
@@ -390,3 +399,4 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     </div>
   );
 };
+

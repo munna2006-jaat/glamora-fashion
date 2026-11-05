@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Product, Combo, CartItem, Order, Coupon, Review, AppSettings, User } from './types';
+import { Product, Combo, CartItem, Order, Coupon, Review, AppSettings, User, Address } from './types';
 import { MOCK_PRODUCTS, MOCK_COMBOS, MOCK_COUPONS, MOCK_REVIEWS, DEFAULT_SETTINGS } from './data/mockData';
 
 // Components
@@ -25,17 +25,19 @@ import { Footer } from './components/Footer';
 
 // Dedicated Separate Pages
 import { OrdersPage } from './components/OrdersPage';
+import { AddressPage } from './components/AddressPage';
 import { PaymentPage } from './components/PaymentPage';
 import { OrderTrackPage } from './components/OrderTrackPage';
 import { AuthPage } from './components/AuthPage';
 
-type View = 'home' | 'orders' | 'payment' | 'track' | 'login' | 'admin';
+type View = 'home' | 'orders' | 'address' | 'payment' | 'track' | 'login' | 'admin';
 
 const getViewFromUrl = (): View => {
   const path = window.location.pathname.toLowerCase();
   const hash = window.location.hash.toLowerCase();
   if (path === '/admin' || hash === '#admin') return 'admin';
   if (path === '/orders' || hash === '#orders') return 'orders';
+  if (path === '/address' || hash === '#address') return 'address';
   if (path === '/payment' || hash === '#payment' || path === '/checkout' || hash === '#checkout') return 'payment';
   if (path === '/track' || hash === '#track') return 'track';
   if (path === '/login' || hash === '#login' || path === '/profile' || hash === '#profile') return 'login';
@@ -63,6 +65,32 @@ export const App: React.FC = () => {
       return null;
     }
   });
+
+  // Shipping Address State
+  const [shippingAddress, setShippingAddress] = useState<Address>(() => {
+    try {
+      const saved = localStorage.getItem('glamora_shipping_address');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return {
+      id: `addr-${Date.now()}`,
+      name: '',
+      phone: '',
+      street: '',
+      city: 'Jaipur',
+      state: 'Rajasthan',
+      pincode: '302001',
+      isDefault: true,
+    };
+  });
+
+  const [contactEmail, setContactEmail] = useState<string>(() => {
+    return localStorage.getItem('glamora_contact_email') || '';
+  });
+
+  // Auth gate notice & destination
+  const [authNotice, setAuthNotice] = useState<string>('');
+  const [redirectAfterAuth, setRedirectAfterAuth] = useState<'address' | 'payment' | null>(null);
 
   // Cart & Wishlist State
   const [cartItems, setCartItems] = useState<CartItem[]>(() => {
@@ -213,12 +241,19 @@ export const App: React.FC = () => {
     });
   };
 
-  // Checkout Triggers
+  // Purchase & Checkout Initiation with Login Gate (Requested by user)
   const handleProceedToCheckout = (coupon: Coupon | null, giftWrap: boolean) => {
     setAppliedCheckoutCoupon(coupon);
     setIsGiftWrapSelected(giftWrap);
     setIsCartOpen(false);
-    navigateTo('payment');
+
+    if (!currentUser) {
+      setAuthNotice('🌸 Please Sign In or Create an Account with your Gmail or Mobile number to continue checkout and save your delivery address.');
+      setRedirectAfterAuth('address');
+      navigateTo('login');
+    } else {
+      navigateTo('address');
+    }
   };
 
   // Category Filtering & Smooth Navigation
@@ -277,7 +312,7 @@ export const App: React.FC = () => {
         onLogout={() => {
           setCurrentUser(null);
           localStorage.removeItem('glamora_user');
-          showToast('Logged out successfully');
+          showToast('Signed out successfully');
         }}
       />
 
@@ -293,7 +328,33 @@ export const App: React.FC = () => {
           />
         )}
 
-        {/* VIEW 2: DEDICATED PAYMENT & CHECKOUT PAGE */}
+        {/* VIEW 2: DEDICATED ADDRESS PAGE (Step 1 of Checkout) */}
+        {currentView === 'address' && (
+          <AddressPage
+            currentUser={currentUser}
+            cartItems={cartItems}
+            appliedCoupon={appliedCheckoutCoupon}
+            giftWrap={isGiftWrapSelected}
+            settings={settings}
+            savedAddress={shippingAddress}
+            savedEmail={contactEmail}
+            onSaveAddressAndProceed={(addr, em) => {
+              setShippingAddress(addr);
+              setContactEmail(em);
+              try {
+                localStorage.setItem('glamora_shipping_address', JSON.stringify(addr));
+                localStorage.setItem('glamora_contact_email', em);
+              } catch {}
+              navigateTo('payment');
+            }}
+            onBackToCart={() => {
+              navigateTo('home');
+              setIsCartOpen(true);
+            }}
+          />
+        )}
+
+        {/* VIEW 3: DEDICATED PAYMENT & CHECKOUT PAGE (Step 2 of Checkout) */}
         {currentView === 'payment' && (
           <PaymentPage
             cartItems={cartItems}
@@ -301,10 +362,9 @@ export const App: React.FC = () => {
             giftWrap={isGiftWrapSelected}
             settings={settings}
             currentUser={currentUser}
-            onBackToCart={() => {
-              navigateTo('home');
-              setIsCartOpen(true);
-            }}
+            shippingAddress={shippingAddress}
+            contactEmail={contactEmail}
+            onEditAddress={() => navigateTo('address')}
             onOrderSuccess={(order) => {
               setCartItems([]);
               setConfirmedOrder(order);
@@ -315,7 +375,7 @@ export const App: React.FC = () => {
           />
         )}
 
-        {/* VIEW 3: DEDICATED ORDER TRACKING PAGE */}
+        {/* VIEW 4: DEDICATED ORDER TRACKING PAGE */}
         {currentView === 'track' && (
           <OrderTrackPage
             initialTrackingId={activeTrackingId}
@@ -324,21 +384,33 @@ export const App: React.FC = () => {
           />
         )}
 
-        {/* VIEW 4: DEDICATED LOGIN / REGISTER / PROFILE PAGE */}
+        {/* VIEW 5: DEDICATED LOGIN / REGISTER / PROFILE PAGE */}
         {currentView === 'login' && (
           <AuthPage
             currentUser={currentUser}
+            authNotice={authNotice}
             onLoginSuccess={(u) => {
               setCurrentUser(u);
-              navigateTo('home');
               showToast(`Welcome back, ${u.name}! 🌸`);
+              if (redirectAfterAuth) {
+                const dest = redirectAfterAuth;
+                setRedirectAfterAuth(null);
+                setAuthNotice('');
+                navigateTo(dest);
+              } else {
+                navigateTo('home');
+              }
             }}
             onLogout={() => {
               setCurrentUser(null);
               localStorage.removeItem('glamora_user');
               showToast('Signed out successfully');
             }}
-            onBackToHome={() => navigateTo('home')}
+            onBackToHome={() => {
+              setAuthNotice('');
+              setRedirectAfterAuth(null);
+              navigateTo('home');
+            }}
             onViewOrders={() => navigateTo('orders')}
             onViewTrack={() => navigateTo('track')}
             onViewWishlist={() => {
@@ -348,10 +420,10 @@ export const App: React.FC = () => {
           />
         )}
 
-        {/* VIEW 5: HOMEPAGE (EDITORIAL LUXURY COMMERCE) */}
+        {/* VIEW 6: HOMEPAGE (EDITORIAL LUXURY COMMERCE) */}
         {currentView === 'home' && (
           <main>
-            {/* Full-screen Editorial Hero Banner (No overlap on mobile) */}
+            {/* Full-screen Editorial Hero Banner (Model clearly visible at top, text at bottom) */}
             <HeroBanner
               onShopCombos={() => handleSelectCategory('combos')}
               onShopIndian={() => handleSelectCategory('indian')}
@@ -361,7 +433,7 @@ export const App: React.FC = () => {
             {/* Story Highlights Bar */}
             <StoryHighlights onSelectCategory={handleSelectCategory} />
 
-            {/* 1. CURATED COMBOS SECTION (SHOWN FIRST ON HOMEPAGE AS REQUESTED) */}
+            {/* 1. CURATED COMBOS SECTION (SHOWN FIRST ON HOMEPAGE) */}
             <CombosSection
               combos={combos}
               onOpenComboModal={(c) => setSelectedCombo(c)}
@@ -380,7 +452,13 @@ export const App: React.FC = () => {
                 };
                 handleAddToCart(item);
                 setIsCartOpen(false);
-                navigateTo('payment');
+                if (!currentUser) {
+                  setAuthNotice('🌸 Please Sign In or Create an Account to continue purchasing this combo outfit.');
+                  setRedirectAfterAuth('address');
+                  navigateTo('login');
+                } else {
+                  navigateTo('address');
+                }
               }}
             />
 
@@ -462,7 +540,13 @@ export const App: React.FC = () => {
           handleAddToCart(item);
           setIsCartOpen(false);
           setSelectedProduct(null);
-          navigateTo('payment');
+          if (!currentUser) {
+            setAuthNotice('🌸 Please Sign In or Create an Account to continue purchasing this item.');
+            setRedirectAfterAuth('address');
+            navigateTo('login');
+          } else {
+            navigateTo('address');
+          }
         }}
         allProducts={products}
         onSelectProduct={(p) => setSelectedProduct(p)}
@@ -477,7 +561,13 @@ export const App: React.FC = () => {
           handleAddToCart(item);
           setIsCartOpen(false);
           setSelectedCombo(null);
-          navigateTo('payment');
+          if (!currentUser) {
+            setAuthNotice('🌸 Please Sign In or Create an Account to continue purchasing this combo outfit.');
+            setRedirectAfterAuth('address');
+            navigateTo('login');
+          } else {
+            navigateTo('address');
+          }
         }}
       />
 

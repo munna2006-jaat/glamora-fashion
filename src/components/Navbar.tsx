@@ -8,7 +8,7 @@ interface NavbarProps {
   currentUser: User | null;
   onOpenCart: () => void;
   onOpenWishlist: () => void;
-  onNavigate: (view: 'home' | 'orders' | 'payment' | 'track' | 'login') => void;
+  onNavigate: (view: 'home' | 'orders' | 'address' | 'payment' | 'track' | 'login') => void;
   onSelectCategory: (cat: string) => void;
   activeCategory: string;
   allProducts: Product[];

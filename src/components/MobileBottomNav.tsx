@@ -3,9 +3,9 @@ import { Home, Sparkles, ShoppingBag, Package, Truck, User as UserIcon } from 'l
 
 interface MobileBottomNavProps {
   cartCount: number;
-  currentView: 'home' | 'orders' | 'payment' | 'track' | 'login';
+  currentView: 'home' | 'orders' | 'address' | 'payment' | 'track' | 'login';
   activeCategory: string;
-  onNavigate: (view: 'home' | 'orders' | 'payment' | 'track' | 'login') => void;
+  onNavigate: (view: any) => void;
   onSelectCategory: (cat: string) => void;
   onOpenCart: () => void;
 }
