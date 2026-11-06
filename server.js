@@ -823,7 +823,7 @@ if (fs.existsSync(distPath)) {
   app.get('/', (req, res) => res.send('GLAMORA Server Running. Please build dist.'));
 }
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`GLAMORA Server running on port ${PORT}`);
 });
 

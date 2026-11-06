@@ -6,7 +6,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "build": "node -e \"console.log('Production ready')\"",
+    "build": "vite build",
     "build:client": "vite build",
     "dev": "concurrently \"vite\" \"node server.js\""
   },
