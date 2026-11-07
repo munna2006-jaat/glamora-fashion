@@ -4,6 +4,17 @@ export const DEFAULT_SETTINGS: AppSettings = {
   upiId: 'glamora@upi',
   upiName: 'GLAMORA FASHION PVT LTD',
   qrCodeUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=glamora@upi&pn=GLAMORA%20FASHION&cu=INR',
+  qrCodes: [
+    {
+      id: 'qr-1',
+      title: 'PhonePe VIP Scanner #1',
+      upiId: 'glamora@upi',
+      upiName: 'GLAMORA FASHION PVT LTD',
+      image: 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=glamora@upi&pn=GLAMORA%20FASHION&cu=INR',
+      isActive: true,
+      createdAt: new Date().toISOString()
+    }
+  ],
   announcementText: '🔥 DHAMAKA SALE: JAIPURI KURTI + EARRING COMBOS AT JUST ₹499 | KURTI + BAGGY JEANS AT ₹699!',
   whatsappNumber: '+91 98765 43210',
   shippingCharge: 70,

@@ -34,8 +34,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [copiedUpi, setCopiedUpi] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const activeUpi = settings?.upiId || 'glamora@upi';
-  const activeQr = settings?.qrCodeUrl || 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=glamora@upi&pn=GLAMORA%20FASHION&cu=INR';
+  // Multi-QR Pool Support
+  const activeQrList = (settings?.qrCodes && settings.qrCodes.filter(q => q.isActive)) || [];
+  const [selectedQrId, setSelectedQrId] = useState<string>(() => {
+    return activeQrList.length > 0 ? activeQrList[0].id : '';
+  });
+
+  const currentQrItem = activeQrList.find(q => q.id === selectedQrId) || activeQrList[0];
+  const activeUpi = currentQrItem?.upiId || settings?.upiId || 'glamora@upi';
+  const activeQr = currentQrItem?.image || settings?.qrCodeUrl || 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=glamora@upi&pn=GLAMORA%20FASHION&cu=INR';
 
   const copyUpi = () => {
     navigator.clipboard.writeText(activeUpi);
@@ -303,6 +310,25 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             {/* UPI QR Display & UTR Box */}
             {paymentMethod === 'upi' && (
               <div className="mt-4 p-4 rounded-2xl bg-glamora-cream/70 border border-glamora-blush space-y-3">
+                {activeQrList.length > 1 && (
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+                    <span className="text-[10px] font-bold text-gray-500 whitespace-nowrap">Channels:</span>
+                    {activeQrList.map((q, idx) => (
+                      <button
+                        key={q.id}
+                        type="button"
+                        onClick={() => setSelectedQrId(q.id)}
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold transition whitespace-nowrap ${
+                          (currentQrItem?.id === q.id)
+                            ? 'bg-glamora-rose text-white'
+                            : 'bg-white text-gray-600 border border-gray-200'
+                        }`}
+                      >
+                        Ch {idx + 1}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <div className="flex flex-col sm:flex-row items-center gap-4">
                   <div className="bg-white p-2 rounded-2xl border border-glamora-blush shadow-sm flex-shrink-0">
                     <img

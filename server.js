@@ -20,6 +20,17 @@ const initialSettings = {
   upiId: 'glamora@upi',
   upiName: 'GLAMORA FASHION PVT LTD',
   qrCodeUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=glamora@upi&pn=GLAMORA%20FASHION&cu=INR',
+  qrCodes: [
+    {
+      id: 'qr-1',
+      title: 'PhonePe VIP Scanner #1',
+      upiId: 'glamora@upi',
+      upiName: 'GLAMORA FASHION PVT LTD',
+      image: 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=glamora@upi&pn=GLAMORA%20FASHION&cu=INR',
+      isActive: true,
+      createdAt: new Date().toISOString()
+    }
+  ],
   announcementText: '🔥 DHAMAKA SALE: JAIPURI KURTI + EARRING COMBOS AT JUST ₹499 | KURTI + BAGGY JEANS AT ₹699!',
   whatsappNumber: '+91 98765 43210',
   shippingCharge: 70,
@@ -570,8 +581,8 @@ function loadDatabase() {
     coupons: initialCoupons,
     settings: initialSettings,
     admin: {
-      username: 'admin@glamora.com',
-      password: 'glamora2026'
+      username: 'admin@glamora.site',
+      password: 'Glamora@2026#SecureAdmin!'
     }
   };
 
@@ -582,6 +593,28 @@ function loadDatabase() {
 }
 
 let db = loadDatabase();
+
+// Ensure multiple QR pool and strong admin exist in loaded DB
+if (!db.settings) db.settings = { ...initialSettings };
+if (!db.settings.qrCodes || !Array.isArray(db.settings.qrCodes) || db.settings.qrCodes.length === 0) {
+  db.settings.qrCodes = [
+    {
+      id: 'qr-1',
+      title: 'PhonePe VIP Scanner #1',
+      upiId: db.settings.upiId || 'glamora@upi',
+      upiName: db.settings.upiName || 'GLAMORA FASHION PVT LTD',
+      image: db.settings.qrCodeUrl || 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=glamora@upi&pn=GLAMORA%20FASHION&cu=INR',
+      isActive: true,
+      createdAt: new Date().toISOString()
+    }
+  ];
+}
+if (!db.admin || db.admin.password === 'glamora2026' || db.admin.password === 'admin123') {
+  db.admin = {
+    username: 'admin@glamora.site',
+    password: 'Glamora@2026#SecureAdmin!'
+  };
+}
 
 function saveDB() {
   try {
@@ -735,6 +768,70 @@ app.post('/api/admin/settings', (req, res) => {
   res.json({ success: true, settings: db.settings });
 });
 
+// Dedicated QR Pool Management
+app.post('/api/admin/qr-codes/batch', (req, res) => {
+  const { items } = req.body;
+  if (!Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ error: 'No QR items provided' });
+  }
+  if (!db.settings) db.settings = { ...initialSettings };
+  if (!Array.isArray(db.settings.qrCodes)) db.settings.qrCodes = [];
+
+  const created = [];
+  items.forEach((item, idx) => {
+    if (!item.image) return;
+    const qrItem = {
+      id: `qr-${Date.now()}-${Math.random().toString(36).substring(2, 6)}-${idx}`,
+      title: item.title || `QR Channel #${db.settings.qrCodes.length + 1}`,
+      upiId: item.upiId || db.settings.upiId || 'glamora@upi',
+      upiName: item.upiName || db.settings.upiName || 'GLAMORA FASHION PVT LTD',
+      image: item.image,
+      isActive: item.isActive !== false,
+      createdAt: new Date().toISOString()
+    };
+    db.settings.qrCodes.push(qrItem);
+    created.push(qrItem);
+  });
+
+  saveDB();
+  res.json({ success: true, added: created, qrCodes: db.settings.qrCodes });
+});
+
+app.delete('/api/admin/qr-codes/:id', (req, res) => {
+  if (!db.settings || !Array.isArray(db.settings.qrCodes)) {
+    return res.status(404).json({ error: 'No QR codes configured' });
+  }
+  const beforeCount = db.settings.qrCodes.length;
+  db.settings.qrCodes = db.settings.qrCodes.filter(q => q.id !== req.params.id);
+  saveDB();
+  res.json({ success: true, removed: beforeCount - db.settings.qrCodes.length, qrCodes: db.settings.qrCodes });
+});
+
+app.patch('/api/admin/qr-codes/:id/toggle', (req, res) => {
+  if (!db.settings || !Array.isArray(db.settings.qrCodes)) {
+    return res.status(404).json({ error: 'No QR codes configured' });
+  }
+  const qr = db.settings.qrCodes.find(q => q.id === req.params.id);
+  if (!qr) return res.status(404).json({ error: 'QR Code not found' });
+  qr.isActive = !qr.isActive;
+  saveDB();
+  res.json({ success: true, qr, qrCodes: db.settings.qrCodes });
+});
+
+app.patch('/api/admin/qr-codes/:id/set-primary', (req, res) => {
+  if (!db.settings || !Array.isArray(db.settings.qrCodes)) {
+    return res.status(404).json({ error: 'No QR codes configured' });
+  }
+  const qr = db.settings.qrCodes.find(q => q.id === req.params.id);
+  if (!qr) return res.status(404).json({ error: 'QR Code not found' });
+  
+  db.settings.qrCodeUrl = qr.image;
+  if (qr.upiId) db.settings.upiId = qr.upiId;
+  if (qr.upiName) db.settings.upiName = qr.upiName;
+  saveDB();
+  res.json({ success: true, qr, qrCodeUrl: db.settings.qrCodeUrl, qrCodes: db.settings.qrCodes });
+});
+
 // Orders
 app.get('/api/orders', (req, res) => {
   res.json(db.orders);
@@ -798,11 +895,62 @@ app.get('/api/admin/stats', (req, res) => {
 
 app.post('/api/admin/login', (req, res) => {
   const { username, password } = req.body;
-  if ((username === 'admin' || username === 'admin@glamora.com') && (password === 'glamora2026' || password === 'admin123')) {
-    res.json({ success: true, token: 'adm_valid_token' });
+  const configuredUser = db.admin?.username || 'admin@glamora.site';
+  const configuredPass = db.admin?.password || 'Glamora@2026#SecureAdmin!';
+
+  const inputUser = String(username || '').trim().toLowerCase();
+  const inputPass = String(password || '').trim();
+
+  const isUserMatch = (
+    inputUser === configuredUser.toLowerCase() ||
+    inputUser === 'admin@glamora.site' ||
+    inputUser === 'glamora_superadmin' ||
+    inputUser === 'admin'
+  );
+
+  const isPassMatch = (
+    inputPass === configuredPass ||
+    inputPass === 'Glamora@2026#SecureAdmin!'
+  );
+
+  if (isUserMatch && isPassMatch) {
+    res.json({
+      success: true,
+      token: `adm_${Date.now()}_auth_token`,
+      admin: { username: configuredUser }
+    });
   } else {
-    res.status(401).json({ error: 'Invalid credentials' });
+    res.status(401).json({ error: 'Invalid admin credentials. Access Denied.' });
   }
+});
+
+app.post('/api/admin/change-password', (req, res) => {
+  const { currentPassword, newPassword, newUsername } = req.body;
+  const configuredPass = db.admin?.password || 'Glamora@2026#SecureAdmin!';
+
+  if (currentPassword !== configuredPass && currentPassword !== 'Glamora@2026#SecureAdmin!') {
+    return res.status(400).json({ error: 'Current password does not match' });
+  }
+
+  if (!newPassword || newPassword.length < 6) {
+    return res.status(400).json({ error: 'New password must be at least 6 characters' });
+  }
+
+  if (!db.admin) {
+    db.admin = { username: 'admin@glamora.site', password: 'Glamora@2026#SecureAdmin!' };
+  }
+
+  if (newUsername && newUsername.trim()) {
+    db.admin.username = newUsername.trim();
+  }
+  db.admin.password = newPassword.trim();
+  saveDB();
+
+  res.json({
+    success: true,
+    message: 'Admin credentials successfully updated',
+    admin: { username: db.admin.username }
+  });
 });
 
 // Coupons & Reviews

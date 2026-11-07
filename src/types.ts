@@ -127,10 +127,21 @@ export interface Coupon {
   description: string;
 }
 
+export interface QrCodeItem {
+  id: string;
+  title: string;
+  image: string;
+  upiId?: string;
+  upiName?: string;
+  isActive: boolean;
+  createdAt?: string;
+}
+
 export interface AppSettings {
   upiId: string;
   upiName: string;
   qrCodeUrl: string;
+  qrCodes?: QrCodeItem[];
   announcementText: string;
   whatsappNumber: string;
   shippingCharge: number;

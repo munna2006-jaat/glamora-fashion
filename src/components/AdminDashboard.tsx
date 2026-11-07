@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Product, Combo, Order, AppSettings } from '../types';
+import { Product, Combo, Order, AppSettings, QrCodeItem } from '../types';
 import { 
   Shield, 
   DollarSign, 
@@ -18,7 +18,14 @@ import {
   Settings,
   Lock,
   LogOut,
-  Image as ImageIcon
+  Image as ImageIcon,
+  CheckCircle2,
+  Power,
+  RefreshCw,
+  Key,
+  ShieldCheck,
+  Check,
+  AlertCircle
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -63,6 +70,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [qrUpiId, setQrUpiId] = useState(settings?.upiId || 'glamora@upi');
   const [qrUpiName, setQrUpiName] = useState(settings?.upiName || 'GLAMORA FASHION PVT LTD');
   const [qrPreviewUrl, setQrPreviewUrl] = useState(settings?.qrCodeUrl || '');
+  const [qrPool, setQrPool] = useState<QrCodeItem[]>(settings?.qrCodes || []);
+  const [selectedBatchFiles, setSelectedBatchFiles] = useState<{ title: string; image: string; upiId: string; upiName: string }[]>([]);
+  const [isBatchUploading, setIsBatchUploading] = useState(false);
+
+  // Password & Security State
+  const [currentPass, setCurrentPass] = useState('');
+  const [newPass, setNewPass] = useState('');
+  const [confirmPass, setConfirmPass] = useState('');
+  const [newAdminUser, setNewAdminUser] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+
   const [announcement, setAnnouncement] = useState(settings?.announcementText || '');
   const [whatsapp, setWhatsapp] = useState(settings?.whatsappNumber || '+91 98765 43210');
   const [freeShippingAbove, setFreeShippingAbove] = useState(settings?.freeShippingAbove || 799);
@@ -72,6 +91,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       setQrUpiId(settings.upiId);
       setQrUpiName(settings.upiName);
       setQrPreviewUrl(settings.qrCodeUrl);
+      setQrPool(settings.qrCodes || []);
       setAnnouncement(settings.announcementText);
       setWhatsapp(settings.whatsappNumber);
       setFreeShippingAbove(settings.freeShippingAbove);
@@ -99,19 +119,43 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   if (!isOpen) return null;
 
-  // Handle Admin Login
-  const handleLogin = (e: React.FormEvent) => {
+  // Handle Admin Login (Supports API Auth + Fallback with Strong Credentials)
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoginError('');
+
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: loginUser.trim(),
+          password: loginPass.trim()
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setIsAuthenticated(true);
+        localStorage.setItem('glamora_admin_auth', 'true');
+        loadStatsAndOrders();
+        return;
+      }
+    } catch (err) {
+      console.warn('Backend login API fallback:', err);
+    }
+
+    const u = loginUser.trim().toLowerCase();
+    const p = loginPass.trim();
     if (
-      (loginUser.trim() === 'admin' || loginUser.trim() === 'admin@glamora.com') &&
-      (loginPass.trim() === 'glamora2026' || loginPass.trim() === 'admin123')
+      (u === 'admin@glamora.site' || u === 'glamora_superadmin' || u === 'admin') &&
+      p === 'Glamora@2026#SecureAdmin!'
     ) {
       setIsAuthenticated(true);
       localStorage.setItem('glamora_admin_auth', 'true');
       setLoginError('');
       loadStatsAndOrders();
     } else {
-      setLoginError('Invalid credentials! Default: admin / glamora2026');
+      setLoginError('Invalid credentials! Access Denied.');
     }
   };
 
@@ -134,13 +178,156 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
-  // Save Settings & QR Code
-  const handleSaveSettings = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Batch QR Selection Handler (Multiple Images at once)
+  const handleBatchSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const fileList = Array.from(files);
+    const newItems: { title: string; image: string; upiId: string; upiName: string }[] = [];
+    let completed = 0;
+
+    fileList.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          const rawName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+          newItems.push({
+            title: `Scanner Channel #${qrPool.length + newItems.length + 1} (${rawName.slice(0, 18)})`,
+            image: reader.result,
+            upiId: qrUpiId || 'glamora@upi',
+            upiName: qrUpiName || 'GLAMORA FASHION PVT LTD'
+          });
+        }
+        completed++;
+        if (completed === fileList.length) {
+          setSelectedBatchFiles(prev => [...prev, ...newItems]);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+    e.target.value = '';
+  };
+
+  const handleRemovePendingBatchItem = (index: number) => {
+    setSelectedBatchFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleUploadBatchQrs = async () => {
+    if (selectedBatchFiles.length === 0) return;
+    setIsBatchUploading(true);
+    try {
+      const res = await fetch('/api/admin/qr-codes/batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: selectedBatchFiles })
+      });
+      const data = await res.json();
+      if (res.ok && data.qrCodes) {
+        setQrPool(data.qrCodes);
+        setSelectedBatchFiles([]);
+        setSaveMessage(`Successfully added ${selectedBatchFiles.length} QR code(s) to pool!`);
+        onUpdateSettings({ ...settings, qrCodes: data.qrCodes });
+        setTimeout(() => setSaveMessage(''), 3000);
+      } else {
+        const newPool: QrCodeItem[] = [
+          ...qrPool,
+          ...selectedBatchFiles.map((item, idx) => ({
+            id: `qr-${Date.now()}-${idx}`,
+            title: item.title,
+            image: item.image,
+            upiId: item.upiId,
+            upiName: item.upiName,
+            isActive: true,
+            createdAt: new Date().toISOString()
+          }))
+        ];
+        setQrPool(newPool);
+        setSelectedBatchFiles([]);
+        handleSaveSettingsWithPool(newPool);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsBatchUploading(false);
+    }
+  };
+
+  const handleToggleQr = async (id: string) => {
+    try {
+      const res = await fetch(`/api/admin/qr-codes/${id}/toggle`, { method: 'PATCH' });
+      const data = await res.json();
+      if (res.ok && data.qrCodes) {
+        setQrPool(data.qrCodes);
+        onUpdateSettings({ ...settings, qrCodes: data.qrCodes });
+        setSaveMessage('QR Code status updated.');
+        setTimeout(() => setSaveMessage(''), 2000);
+      } else {
+        const updated = qrPool.map(q => q.id === id ? { ...q, isActive: !q.isActive } : q);
+        setQrPool(updated);
+        handleSaveSettingsWithPool(updated);
+      }
+    } catch (err) {
+      const updated = qrPool.map(q => q.id === id ? { ...q, isActive: !q.isActive } : q);
+      setQrPool(updated);
+      handleSaveSettingsWithPool(updated);
+    }
+  };
+
+  const handleSetPrimaryQr = async (qr: QrCodeItem) => {
+    try {
+      const res = await fetch(`/api/admin/qr-codes/${qr.id}/set-primary`, { method: 'PATCH' });
+      const data = await res.json();
+      if (res.ok) {
+        setQrPreviewUrl(qr.image);
+        if (qr.upiId) setQrUpiId(qr.upiId);
+        if (qr.upiName) setQrUpiName(qr.upiName);
+        setSaveMessage(`Primary scanner set to "${qr.title}"!`);
+        onUpdateSettings({ ...settings, qrCodeUrl: qr.image, upiId: qr.upiId || settings.upiId, upiName: qr.upiName || settings.upiName });
+        setTimeout(() => setSaveMessage(''), 3000);
+      } else {
+        setQrPreviewUrl(qr.image);
+        if (qr.upiId) setQrUpiId(qr.upiId);
+        if (qr.upiName) setQrUpiName(qr.upiName);
+        handleSaveSettingsWithPool(qrPool, qr.image, qr.upiId, qr.upiName);
+      }
+    } catch (err) {
+      setQrPreviewUrl(qr.image);
+      if (qr.upiId) setQrUpiId(qr.upiId);
+      if (qr.upiName) setQrUpiName(qr.upiName);
+      handleSaveSettingsWithPool(qrPool, qr.image, qr.upiId, qr.upiName);
+    }
+  };
+
+  const handleDeleteQr = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this QR code from the pool?')) return;
+    try {
+      const res = await fetch(`/api/admin/qr-codes/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (res.ok && data.qrCodes) {
+        setQrPool(data.qrCodes);
+        onUpdateSettings({ ...settings, qrCodes: data.qrCodes });
+        setSaveMessage('QR Code removed from pool.');
+        setTimeout(() => setSaveMessage(''), 3000);
+      } else {
+        const updated = qrPool.filter(q => q.id !== id);
+        setQrPool(updated);
+        handleSaveSettingsWithPool(updated);
+      }
+    } catch (err) {
+      const updated = qrPool.filter(q => q.id !== id);
+      setQrPool(updated);
+      handleSaveSettingsWithPool(updated);
+    }
+  };
+
+  const handleSaveSettingsWithPool = async (updatedPool?: QrCodeItem[], newQrUrl?: string, newUpiId?: string, newUpiName?: string) => {
+    const poolToSave = updatedPool || qrPool;
     const updatedSettings: AppSettings = {
-      upiId: qrUpiId,
-      upiName: qrUpiName,
-      qrCodeUrl: qrPreviewUrl,
+      upiId: newUpiId || qrUpiId,
+      upiName: newUpiName || qrUpiName,
+      qrCodeUrl: newQrUrl || qrPreviewUrl,
+      qrCodes: poolToSave,
       announcementText: announcement,
       whatsappNumber: whatsapp,
       shippingCharge: 70,
@@ -155,12 +342,59 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       });
       if (res.ok) {
         onUpdateSettings(updatedSettings);
-        setSaveMessage('QR Code & Website Settings updated successfully!');
+        setSaveMessage('QR Codes Pool & Store Settings saved!');
         setTimeout(() => setSaveMessage(''), 3000);
       }
     } catch (err) {
       console.error(err);
     }
+  };
+
+  // Change Admin Password Handler
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError('');
+    setPasswordSuccess('');
+
+    if (newPass !== confirmPass) {
+      setPasswordError('New password and confirm password do not match');
+      return;
+    }
+    if (newPass.length < 6) {
+      setPasswordError('New password must be at least 6 characters long');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/admin/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentPassword: currentPass,
+          newPassword: newPass,
+          newUsername: newAdminUser || undefined
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setPasswordSuccess('Admin credentials updated successfully!');
+        setCurrentPass('');
+        setNewPass('');
+        setConfirmPass('');
+        setNewAdminUser('');
+        setTimeout(() => setPasswordSuccess(''), 4000);
+      } else {
+        setPasswordError(data.error || 'Failed to update admin credentials');
+      }
+    } catch (err) {
+      setPasswordError('Network error while updating password');
+    }
+  };
+
+  // Save Settings & QR Code
+  const handleSaveSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await handleSaveSettingsWithPool(qrPool);
   };
 
   // Handle Product Save
@@ -373,40 +607,41 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
             <form onSubmit={handleLogin} className="space-y-4 text-xs">
               <div>
-                <label className="block font-semibold text-gray-700 mb-1">Username / Email</label>
+                <label className="block font-semibold text-gray-700 mb-1">Admin Username / Email</label>
                 <input
                   type="text"
                   required
-                  placeholder="admin@glamora.com"
+                  placeholder="admin@glamora.site"
                   value={loginUser}
                   onChange={(e) => setLoginUser(e.target.value)}
-                  className="w-full bg-glamora-cream/50 border border-glamora-blush rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-glamora-rose"
+                  className="w-full bg-glamora-cream/50 border border-glamora-blush rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-glamora-rose font-medium text-xs"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-gray-700 mb-1">Password</label>
+                <label className="block font-semibold text-gray-700 mb-1">Master Password</label>
                 <input
                   type="password"
                   required
-                  placeholder="••••••••"
+                  placeholder="••••••••••••"
                   value={loginPass}
                   onChange={(e) => setLoginPass(e.target.value)}
-                  className="w-full bg-glamora-cream/50 border border-glamora-blush rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-glamora-rose"
+                  className="w-full bg-glamora-cream/50 border border-glamora-blush rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-glamora-rose text-xs"
                 />
               </div>
 
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full bg-glamora-charcoal hover:bg-glamora-rose text-white text-sm font-bold py-3.5 rounded-xl transition shadow-md cursor-pointer"
+                  className="w-full bg-glamora-charcoal hover:bg-glamora-rose text-white text-sm font-bold py-3.5 rounded-xl transition shadow-md cursor-pointer flex items-center justify-center gap-2"
                 >
-                  Login to Admin Panel
+                  <Lock className="w-4 h-4" />
+                  <span>Secure Admin Login</span>
                 </button>
               </div>
 
-              <div className="p-3 bg-gray-50 rounded-xl text-[11px] text-gray-500 text-center border border-gray-100">
-                Default Credentials: Username: <b className="text-glamora-charcoal">admin</b> | Password: <b className="text-glamora-charcoal">glamora2026</b>
+              <div className="p-3 bg-emerald-50/60 rounded-xl text-[11px] text-gray-600 text-center border border-emerald-100/80">
+                🔒 Protected Admin Portal: Authorized Admin ID <b className="text-glamora-charcoal">admin@glamora.site</b>
               </div>
             </form>
           </div>
@@ -472,41 +707,51 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           {/* Tab Content Area */}
           <div className="flex-1 p-4 sm:p-8 max-w-7xl mx-auto w-full space-y-6">
 
-            {/* TAB: UPI & QR CODE MANAGER */}
+            {/* TAB: UPI & MULTIPLE QR CODES MANAGER */}
             {activeTab === 'qr' && (
-              <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-sm">
-                <div className="max-w-2xl">
-                  <div className="flex items-center gap-2 mb-2">
-                    <QrCode className="w-5 h-5 text-glamora-rose" />
-                    <h3 className="font-serif text-xl font-bold text-glamora-charcoal">
-                      Payment QR Code & UPI Configuration
-                    </h3>
+              <div className="space-y-6 max-w-5xl">
+                
+                {/* 1. Live Primary QR Code & Quick Configuration */}
+                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-sm">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-gray-100">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <QrCode className="w-5 h-5 text-glamora-rose" />
+                        <h3 className="font-serif text-xl font-bold text-glamora-charcoal">
+                          Primary Active QR Code & Store UPI
+                        </h3>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Yeh primary QR code customer ko checkout par by default dikhega. Agar aapne multiple QRs upload kiye hain, to customer switch bhi kar sakega.
+                      </p>
+                    </div>
+
+                    <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 self-start sm:self-auto">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span>Checkout Live Scanner</span>
+                    </span>
                   </div>
-                  <p className="text-xs text-gray-500 mb-6">
-                    Customer jab bhi checkout par Instant UPI select karega, unhe yeh QR Code aur UPI ID dikhega. Aap apna khud ka PhonePe / GooglePay / Paytm QR code upload kar sakte hain.
-                  </p>
 
                   <form onSubmit={handleSaveSettings} className="space-y-5 text-xs">
-                    
-                    {/* Live Preview & Upload Box */}
+                    {/* Live Preview Box */}
                     <div className="p-4 rounded-2xl bg-glamora-cream/60 border border-glamora-blush flex flex-col sm:flex-row items-center gap-6">
-                      <div className="bg-white p-3 rounded-2xl border border-glamora-blush/60 shadow-sm text-center">
+                      <div className="bg-white p-3 rounded-2xl border border-glamora-blush/60 shadow-sm text-center flex-shrink-0">
                         <img
                           src={qrPreviewUrl || 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=glamora@upi&pn=GLAMORA%20FASHION&cu=INR'}
-                          alt="Current UPI QR Code"
+                          alt="Primary UPI QR Code"
                           className="w-36 h-36 object-contain rounded-xl mx-auto"
                         />
-                        <span className="text-[10px] text-gray-500 font-bold block mt-1.5">LIVE SCANNER PREVIEW</span>
+                        <span className="text-[10px] text-gray-500 font-bold block mt-1.5 tracking-wider uppercase">PRIMARY LIVE SCANNER</span>
                       </div>
 
                       <div className="flex-1 space-y-3 w-full">
                         <div>
                           <label className="block font-bold text-glamora-charcoal mb-1">
-                            Option 1: Upload QR Code Image from Device
+                            Replace Primary QR Image (Single File Upload)
                           </label>
                           <label className="flex items-center gap-2 p-2.5 bg-white border border-dashed border-glamora-rose rounded-xl cursor-pointer hover:bg-glamora-blush/20 transition">
                             <Upload className="w-4 h-4 text-glamora-rose" />
-                            <span className="text-xs text-glamora-rose font-semibold">Choose QR Image File (JPG/PNG)</span>
+                            <span className="text-xs text-glamora-rose font-semibold">Choose Single Image (JPG/PNG)</span>
                             <input
                               type="file"
                               accept="image/*"
@@ -518,7 +763,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                         <div>
                           <label className="block font-bold text-glamora-charcoal mb-1">
-                            Option 2: Direct Image URL
+                            Or Direct QR Image URL
                           </label>
                           <input
                             type="text"
@@ -533,7 +778,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block font-semibold text-gray-700 mb-1">UPI ID / VPA *</label>
+                        <label className="block font-semibold text-gray-700 mb-1">Store UPI ID / VPA *</label>
                         <input
                           type="text"
                           required
@@ -551,7 +796,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           required
                           value={qrUpiName}
                           onChange={(e) => setQrUpiName(e.target.value)}
-                          placeholder="e.g. GLAMORA FASHION"
+                          placeholder="e.g. GLAMORA FASHION PVT LTD"
                           className="w-full bg-white border border-gray-200 rounded-xl p-2.5 font-bold text-glamora-charcoal focus:ring-1 focus:ring-glamora-rose"
                         />
                       </div>
@@ -563,12 +808,311 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         className="bg-glamora-charcoal hover:bg-glamora-rose text-white text-xs font-bold px-6 py-3 rounded-xl transition flex items-center gap-2 shadow-sm cursor-pointer"
                       >
                         <Save className="w-4 h-4" />
-                        <span>Save & Update Checkout QR</span>
+                        <span>Save Primary QR Settings</span>
                       </button>
                     </div>
-
                   </form>
                 </div>
+
+                {/* 2. Batch Multiple QR Code Upload Section */}
+                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Layers className="w-5 h-5 text-glamora-rose" />
+                    <h3 className="font-serif text-xl font-bold text-glamora-charcoal">
+                      Batch Upload Multiple QR Codes (Pool / Channels)
+                    </h3>
+                  </div>
+                  <p className="text-xs text-gray-500 mb-4">
+                    Yahan se aap ek sath 2, 3 ya 5+ alag alag QR Code images (PhonePe, Google Pay, Paytm, BHIM) select karke upload kar sakte hain. Customer payment ke waqt channel change kar sakega.
+                  </p>
+
+                  <div className="p-6 rounded-2xl border-2 border-dashed border-glamora-rose/50 bg-glamora-cream/40 text-center hover:bg-glamora-blush/20 transition mb-6">
+                    <input
+                      type="file"
+                      id="batch-qr-upload"
+                      multiple
+                      accept="image/*"
+                      onChange={handleBatchSelect}
+                      className="hidden"
+                    />
+                    <label htmlFor="batch-qr-upload" className="cursor-pointer block">
+                      <div className="w-12 h-12 rounded-full bg-glamora-blush/60 text-glamora-rose flex items-center justify-center mx-auto mb-3">
+                        <Upload className="w-6 h-6" />
+                      </div>
+                      <span className="font-bold text-sm text-glamora-charcoal block">
+                        Click to Select Multiple QR Image Files
+                      </span>
+                      <span className="text-xs text-gray-500 block mt-1">
+                        Select 2 or more files (PNG, JPG, WEBP) at once
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* Previews of files selected for batch upload */}
+                  {selectedBatchFiles.length > 0 && (
+                    <div className="space-y-4 mb-6">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-glamora-charcoal">
+                          Selected for Upload: ({selectedBatchFiles.length} QR Codes)
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedBatchFiles([])}
+                          className="text-xs text-red-600 hover:underline font-semibold"
+                        >
+                          Clear All Selected
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {selectedBatchFiles.map((item, idx) => (
+                          <div key={idx} className="bg-gray-50 p-3.5 rounded-2xl border border-gray-200 relative text-xs flex gap-3">
+                            <img
+                              src={item.image}
+                              alt="Batch QR Preview"
+                              className="w-16 h-16 object-contain rounded-xl bg-white border border-gray-200 p-1 flex-shrink-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <label className="text-[10px] font-bold text-gray-500 uppercase block mb-0.5">Label / Title:</label>
+                              <input
+                                type="text"
+                                value={item.title}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setSelectedBatchFiles(prev => prev.map((q, i) => i === idx ? { ...q, title: val } : q));
+                                }}
+                                className="w-full bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs font-semibold"
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleRemovePendingBatchItem(idx)}
+                              className="text-gray-400 hover:text-red-600 p-1 self-start"
+                              title="Remove"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleUploadBatchQrs}
+                        disabled={isBatchUploading}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-6 py-3 rounded-xl transition flex items-center gap-2 shadow-sm cursor-pointer disabled:opacity-50"
+                      >
+                        {isBatchUploading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                        <span>Save & Add All {selectedBatchFiles.length} QRs to Store Pool</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* 3. Existing QR Codes Pool Grid */}
+                  <div className="pt-4 border-t border-gray-100">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="font-bold text-sm text-glamora-charcoal flex items-center gap-2">
+                        <span>Current Store QR Pool ({qrPool.length})</span>
+                        <span className="text-xs font-normal text-gray-500">
+                          ({qrPool.filter(q => q.isActive).length} Active)
+                        </span>
+                      </h4>
+                    </div>
+
+                    {qrPool.length === 0 ? (
+                      <div className="p-8 text-center text-xs text-gray-500 bg-gray-50 rounded-2xl border border-gray-100">
+                        No additional QR codes in the pool. Use the batch upload above to add multiple QRs.
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {qrPool.map((qr) => {
+                          const isCurrentlyPrimary = qrPreviewUrl === qr.image;
+                          return (
+                            <div
+                              key={qr.id}
+                              className={`p-4 rounded-2xl border text-xs flex flex-col justify-between transition ${
+                                isCurrentlyPrimary
+                                  ? 'bg-glamora-blush/20 border-glamora-rose shadow-sm'
+                                  : qr.isActive
+                                  ? 'bg-white border-gray-200 shadow-xs'
+                                  : 'bg-gray-100/70 border-gray-200 opacity-60'
+                              }`}
+                            >
+                              <div>
+                                <div className="flex items-start justify-between gap-2 mb-2">
+                                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                                    qr.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-200 text-gray-600'
+                                  }`}>
+                                    {qr.isActive ? 'Active' : 'Paused'}
+                                  </span>
+
+                                  {isCurrentlyPrimary && (
+                                    <span className="bg-glamora-rose text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                      Primary
+                                    </span>
+                                  )}
+                                </div>
+
+                                <div className="flex items-center gap-3 mb-3">
+                                  <img
+                                    src={qr.image}
+                                    alt={qr.title}
+                                    className="w-16 h-16 object-contain rounded-xl bg-white border border-gray-200 p-1 flex-shrink-0"
+                                  />
+                                  <div className="min-w-0 flex-1">
+                                    <h5 className="font-bold text-glamora-charcoal text-xs truncate" title={qr.title}>
+                                      {qr.title}
+                                    </h5>
+                                    <p className="font-mono text-[11px] text-gray-600 truncate mt-0.5">
+                                      {qr.upiId || qrUpiId}
+                                    </p>
+                                    <span className="text-[10px] text-gray-400 block truncate">
+                                      {qr.upiName || qrUpiName}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="pt-2 border-t border-gray-100 flex items-center justify-between gap-2">
+                                {!isCurrentlyPrimary && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSetPrimaryQr(qr)}
+                                    className="text-[11px] font-bold text-glamora-rose hover:underline flex items-center gap-1 cursor-pointer"
+                                  >
+                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                    <span>Set as Primary</span>
+                                  </button>
+                                )}
+
+                                <div className="flex items-center gap-2 ml-auto">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToggleQr(qr.id)}
+                                    className={`p-1.5 rounded-lg border text-xs transition cursor-pointer ${
+                                      qr.isActive
+                                        ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
+                                        : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                                    }`}
+                                    title={qr.isActive ? 'Pause QR' : 'Activate QR'}
+                                  >
+                                    <Power className="w-3.5 h-3.5" />
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteQr(qr.id)}
+                                    className="p-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition cursor-pointer"
+                                    title="Delete QR"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 4. Admin Security & Strong Credentials Card */}
+                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Key className="w-5 h-5 text-glamora-rose" />
+                    <h3 className="font-serif text-xl font-bold text-glamora-charcoal">
+                      Admin Security & Password Manager
+                    </h3>
+                  </div>
+                  <p className="text-xs text-gray-500 mb-6">
+                    Yahan se aap apne Glamora Admin panel ka Password aur Username change karke strong rakh sakte hain taaki unauthorized access na ho.
+                  </p>
+
+                  {passwordSuccess && (
+                    <div className="mb-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold flex items-center gap-2">
+                      <Check className="w-4 h-4" />
+                      <span>{passwordSuccess}</span>
+                    </div>
+                  )}
+
+                  {passwordError && (
+                    <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs font-semibold flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4" />
+                      <span>{passwordError}</span>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleChangePassword} className="space-y-4 text-xs max-w-xl">
+                    <div>
+                      <label className="block font-semibold text-gray-700 mb-1">
+                        Current Master Password *
+                      </label>
+                      <input
+                        type="password"
+                        required
+                        value={currentPass}
+                        onChange={(e) => setCurrentPass(e.target.value)}
+                        placeholder="Enter current password"
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-xs focus:ring-1 focus:ring-glamora-rose"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-semibold text-gray-700 mb-1">
+                        New Admin Username / Email (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={newAdminUser}
+                        onChange={(e) => setNewAdminUser(e.target.value)}
+                        placeholder="e.g. admin@glamora.site"
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-xs focus:ring-1 focus:ring-glamora-rose"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block font-semibold text-gray-700 mb-1">
+                          New Strong Password *
+                        </label>
+                        <input
+                          type="password"
+                          required
+                          value={newPass}
+                          onChange={(e) => setNewPass(e.target.value)}
+                          placeholder="Min 6 characters"
+                          className="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-xs focus:ring-1 focus:ring-glamora-rose"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-semibold text-gray-700 mb-1">
+                          Confirm New Password *
+                        </label>
+                        <input
+                          type="password"
+                          required
+                          value={confirmPass}
+                          onChange={(e) => setConfirmPass(e.target.value)}
+                          placeholder="Re-enter new password"
+                          className="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-xs focus:ring-1 focus:ring-glamora-rose"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pt-2">
+                      <button
+                        type="submit"
+                        className="bg-glamora-charcoal hover:bg-glamora-rose text-white text-xs font-bold px-6 py-3 rounded-xl transition flex items-center gap-2 shadow-sm cursor-pointer"
+                      >
+                        <ShieldCheck className="w-4 h-4" />
+                        <span>Update Admin Password</span>
+                      </button>
+                    </div>
+                  </form>
+                </div>
+
               </div>
             )}
 

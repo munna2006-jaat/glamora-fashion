@@ -47,7 +47,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
   const finalTotal = Math.max(0, subtotal - discountAmount + shipping + giftWrapCharge);
 
   const handleCopyUpi = () => {
-    navigator.clipboard.writeText(settings.upiId || 'glamora@upi');
+    navigator.clipboard.writeText(activeUpiId || settings.upiId || 'glamora@upi');
     setCopiedUpi(true);
     setTimeout(() => setCopiedUpi(false), 2500);
   };
@@ -139,12 +139,23 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
     }
   };
 
+  // Multiple QR Channels Support
+  const activeQrList = (settings.qrCodes && settings.qrCodes.filter(q => q.isActive)) || [];
+  const [selectedQrId, setSelectedQrId] = useState<string>(() => {
+    return activeQrList.length > 0 ? activeQrList[0].id : '';
+  });
+
+  const currentQrItem = activeQrList.find(q => q.id === selectedQrId) || activeQrList[0];
+  const activeUpiId = currentQrItem?.upiId || settings.upiId || 'glamora@upi';
+  const activeUpiName = currentQrItem?.upiName || settings.upiName || 'GLAMORA FASHION';
+
   // Generate dynamic QR URL
   const qrUrl =
+    currentQrItem?.image ||
     settings.qrCodeUrl ||
     `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=${encodeURIComponent(
-      settings.upiId || 'glamora@upi'
-    )}%26pn=${encodeURIComponent(settings.upiName || 'GLAMORA FASHION')}%26am=${finalTotal}%26cu=INR`;
+      activeUpiId
+    )}%26pn=${encodeURIComponent(activeUpiName)}%26am=${finalTotal}%26cu=INR`;
 
   return (
     <div className="min-h-screen bg-[#FFF9F6] text-glamora-charcoal pt-6 pb-28 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
@@ -263,6 +274,34 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
                 <span className="text-xs font-bold uppercase tracking-wider text-glamora-rose-dark block">
                   Scan to Pay ₹{finalTotal.toLocaleString('en-IN')}
                 </span>
+
+                {/* Multiple QR Channel Switcher (If configured) */}
+                {activeQrList.length > 1 && (
+                  <div className="bg-glamora-blush/20 p-2.5 rounded-xl border border-glamora-blush text-center space-y-1.5 max-w-sm mx-auto">
+                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">
+                      Select Payment Scanner Channel:
+                    </span>
+                    <div className="flex flex-wrap items-center justify-center gap-1.5">
+                      {activeQrList.map((q, idx) => {
+                        const isSelected = (currentQrItem?.id === q.id);
+                        return (
+                          <button
+                            key={q.id}
+                            type="button"
+                            onClick={() => setSelectedQrId(q.id)}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
+                              isSelected
+                                ? 'bg-glamora-rose text-white shadow-xs'
+                                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                            }`}
+                          >
+                            <span>Channel {idx + 1}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
                 
                 <div className="w-52 h-52 mx-auto p-2.5 bg-white rounded-2xl border-2 border-glamora-rose shadow-md flex items-center justify-center">
                   <img
@@ -273,15 +312,15 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
                 </div>
 
                 <p className="text-[11px] text-gray-500">
-                  Open any UPI app on your phone & scan this QR code
+                  Open any UPI app (PhonePe, GPay, Paytm) & scan this QR code
                 </p>
 
                 {/* UPI ID with One-Click Copy */}
                 <div className="bg-glamora-cream/50 p-3 rounded-xl border border-gray-200 flex items-center justify-between gap-2 text-xs max-w-sm mx-auto">
                   <div className="min-w-0 text-left">
-                    <span className="text-[9px] text-gray-400 block font-semibold">Official Store UPI ID:</span>
+                    <span className="text-[9px] text-gray-400 block font-semibold">Store Payee UPI ID:</span>
                     <span className="font-mono font-bold text-glamora-charcoal truncate block">
-                      {settings.upiId || 'glamora@upi'}
+                      {activeUpiId}
                     </span>
                   </div>
                   <button
