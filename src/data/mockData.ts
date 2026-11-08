@@ -19,7 +19,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   whatsappNumber: '+91 98765 43210',
   shippingCharge: 70,
   freeShippingAbove: 799,
-  metaPixelId: '',
+  metaPixelId: '2066705063996932',
   siteDomain: 'glamora.living'
 };
 
