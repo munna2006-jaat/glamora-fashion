@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Product, CartItem } from '../types';
 import { X, Heart, Star, ShoppingBag, Truck, RotateCcw, ShieldCheck, Check, Sparkles, MapPin } from 'lucide-react';
 
@@ -30,6 +30,12 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   const [selectedColor, setSelectedColor] = useState(product.colors[0]?.name || 'Standard');
   const [pincode, setPincode] = useState('');
   const [deliveryResult, setDeliveryResult] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (product?.images?.length) {
+      setActiveImage(product.images[0]);
+    }
+  }, [product]);
 
   const checkPincode = (e: React.FormEvent) => {
     e.preventDefault();

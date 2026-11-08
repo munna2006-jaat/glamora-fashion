@@ -84,6 +84,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [metaPixelId, setMetaPixelId] = useState(settings?.metaPixelId || '');
   const [siteDomain, setSiteDomain] = useState(settings?.siteDomain || 'glamora.living');
   const [copiedAdField, setCopiedAdField] = useState('');
+  const [newProductImageUrl, setNewProductImageUrl] = useState('');
 
   // Password & Security State
   const [currentPass, setCurrentPass] = useState('');
@@ -475,21 +476,66 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
-  // Handle Product Image Upload
-  const handleProductImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !editingProduct) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      if (typeof reader.result === 'string') {
-        const currentImgs = editingProduct.images || [];
-        setEditingProduct({
-          ...editingProduct,
-          images: [reader.result, ...currentImgs.filter(img => img !== reader.result)]
-        });
-      }
-    };
-    reader.readAsDataURL(file);
+  // Handle Product Multiple Image Upload
+  const handleProductMultipleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0 || !editingProduct) return;
+
+    const fileList = Array.from(files);
+    let loadedCount = 0;
+    const newImages: string[] = [];
+
+    fileList.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          newImages.push(reader.result);
+        }
+        loadedCount++;
+        if (loadedCount === fileList.length) {
+          const currentImgs = editingProduct.images || [];
+          setEditingProduct({
+            ...editingProduct,
+            images: [...currentImgs, ...newImages]
+          });
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+
+    e.target.value = '';
+  };
+
+  // Remove individual product image
+  const handleRemoveProductImage = (indexToRemove: number) => {
+    if (!editingProduct) return;
+    const updated = (editingProduct.images || []).filter((_, idx) => idx !== indexToRemove);
+    setEditingProduct({
+      ...editingProduct,
+      images: updated
+    });
+  };
+
+  // Make an image the primary cover photo (move to index 0)
+  const handleSetCoverProductImage = (indexToCover: number) => {
+    if (!editingProduct) return;
+    const currentImgs = [...(editingProduct.images || [])];
+    const [selected] = currentImgs.splice(indexToCover, 1);
+    setEditingProduct({
+      ...editingProduct,
+      images: [selected, ...currentImgs]
+    });
+  };
+
+  // Add Image via Direct URL
+  const handleAddProductImageUrl = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!newProductImageUrl.trim() || !editingProduct) return;
+    setEditingProduct({
+      ...editingProduct,
+      images: [...(editingProduct.images || []), newProductImageUrl.trim()]
+    });
+    setNewProductImageUrl('');
   };
 
   // Handle Combo Image Upload
@@ -1276,15 +1322,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         price: 499,
                         originalPrice: 999,
                         priceTier: 'affordable',
-                        images: ['https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'],
-                        description: 'Pure Rajasthani handblock cotton kurti with elegant detailing.',
+                        images: [],
+                        description: '',
                         fabric: '100% Breathable Jaipur Cotton',
                         care: 'Gentle hand wash cold',
                         sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
                         colors: [{ name: 'Gulabi Rose', hex: '#D98BA5' }],
                         stock: 50,
                         rating: 4.9,
-                        reviewsCount: 15,
+                        reviewsCount: 1,
                         isNewArrival: true,
                       });
                       setIsNewProduct(true);
@@ -2039,46 +2085,115 @@ Pure Cotton Mulmul & Sanganeri Handblock Kurtis starting at just ₹499! 🌸
               </div>
 
               <div>
-                <label className="block font-semibold text-gray-600 mb-1">Product Photo / Image *</label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block font-semibold text-gray-700">
+                    Product Photos ({editingProduct.images?.length || 0}) *
+                  </label>
+                  <span className="text-[10px] text-gray-500">
+                    Select single or multiple photos
+                  </span>
+                </div>
                 
-                {/* Photo Preview + Direct File Upload Option */}
-                <div className="flex items-center gap-3 mb-2 p-3 bg-gray-50 border border-gray-200 rounded-2xl">
-                  {editingProduct.images?.[0] ? (
-                    <img
-                      src={editingProduct.images[0]}
-                      alt="Product Preview"
-                      className="w-16 h-20 object-cover rounded-xl border border-glamora-blush shadow-sm flex-shrink-0"
-                    />
-                  ) : (
-                    <div className="w-16 h-20 rounded-xl bg-gray-200 flex items-center justify-center text-gray-400 flex-shrink-0">
-                      <ImageIcon className="w-6 h-6" />
+                {/* Upload Action Box */}
+                <div className="p-3 bg-gradient-to-r from-gray-50 to-pink-50/30 border border-dashed border-glamora-blush rounded-2xl space-y-2.5">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-10 h-10 rounded-xl bg-white border border-glamora-blush/60 shadow-sm flex items-center justify-center text-glamora-rose flex-shrink-0">
+                        <Upload className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-glamora-charcoal">
+                          Upload Photos from Phone / PC
+                        </div>
+                        <div className="text-[10px] text-gray-500">
+                          Select 1, 2, 3 or more photos together from gallery
+                        </div>
+                      </div>
                     </div>
-                  )}
 
-                  <div className="flex-1 space-y-1.5">
-                    <label className="inline-flex items-center gap-2 bg-glamora-rose hover:bg-glamora-rose-dark text-white text-xs font-bold px-3.5 py-2 rounded-xl cursor-pointer transition shadow-sm">
-                      <Upload className="w-4 h-4" />
-                      <span>Upload Photo from Phone / PC</span>
+                    <label className="bg-glamora-rose hover:bg-glamora-rose-dark text-white text-xs font-bold px-3.5 py-2 rounded-xl cursor-pointer transition shadow-sm flex items-center gap-1.5 whitespace-nowrap self-stretch sm:self-auto justify-center">
+                      <Plus className="w-4 h-4" />
+                      <span>+ Add Photos</span>
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={handleProductImageUpload}
+                        multiple
+                        onChange={handleProductMultipleImageUpload}
                         className="hidden"
                       />
                     </label>
-                    <p className="text-[10px] text-gray-500">
-                      Tap above to pick photo from mobile gallery or computer files
-                    </p>
+                  </div>
+
+                  {/* Direct Image URL input */}
+                  <div className="flex gap-2 pt-2 border-t border-gray-200/70">
+                    <input
+                      type="text"
+                      placeholder="Or enter direct image URL (https://...)"
+                      value={newProductImageUrl}
+                      onChange={(e) => setNewProductImageUrl(e.target.value)}
+                      className="flex-1 bg-white border border-gray-200 rounded-xl px-2.5 py-1.5 font-mono text-[11px] focus:ring-1 focus:ring-glamora-rose"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddProductImageUrl}
+                      className="bg-gray-800 hover:bg-black text-white text-[11px] font-semibold px-3 py-1.5 rounded-xl transition cursor-pointer"
+                    >
+                      + Add URL
+                    </button>
                   </div>
                 </div>
 
-                <input
-                  type="text"
-                  placeholder="Or enter Image URL (https://...)"
-                  value={editingProduct.images[0] || ''}
-                  onChange={(e) => setEditingProduct({ ...editingProduct, images: [e.target.value] })}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 font-mono text-[11px]"
-                />
+                {/* Uploaded Images Gallery Grid with Delete (✕) & Cover buttons */}
+                {editingProduct.images && editingProduct.images.length > 0 ? (
+                  <div className="mt-3">
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">
+                      Attached Product Images ({editingProduct.images.length}) — Click ✕ to remove any image:
+                    </div>
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                      {editingProduct.images.map((img, idx) => (
+                        <div
+                          key={idx}
+                          className="relative group rounded-xl overflow-hidden border border-gray-200 bg-white aspect-[3/4] shadow-sm flex flex-col justify-between"
+                        >
+                          <img
+                            src={img}
+                            alt={`Photo ${idx + 1}`}
+                            className="w-full h-full object-cover object-center"
+                          />
+
+                          {/* Cover badge / Set as Cover */}
+                          {idx === 0 ? (
+                            <span className="absolute top-1 left-1 bg-glamora-charcoal text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">
+                              ★ Cover
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleSetCoverProductImage(idx)}
+                              className="absolute bottom-1 left-1 right-1 bg-black/75 hover:bg-black text-white text-[8px] font-semibold py-0.5 rounded text-center opacity-90 sm:opacity-0 group-hover:opacity-100 transition"
+                            >
+                              Make Cover
+                            </button>
+                          )}
+
+                          {/* Delete (✕) button */}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveProductImage(idx)}
+                            className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center text-[10px] shadow-md transition cursor-pointer"
+                            title="Remove this photo"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-2 p-2.5 text-center text-xs text-amber-700 bg-amber-50 rounded-xl border border-amber-200">
+                    ⚠️ No photos attached. Click <b>+ Add Photos</b> above to upload product photos.
+                  </div>
+                )}
               </div>
 
               <div>
