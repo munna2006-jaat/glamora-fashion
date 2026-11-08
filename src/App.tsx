@@ -309,7 +309,7 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFF9F6] text-glamora-charcoal font-sans flex flex-col pb-28 lg:pb-0 selection:bg-glamora-blush selection:text-glamora-charcoal">
+    <div className="min-h-screen bg-[#FFF9F6] text-glamora-charcoal font-sans flex flex-col pb-28 lg:pb-0 selection:bg-glamora-blush selection:text-glamora-charcoal w-full max-w-full overflow-x-hidden">
       
       {/* Toast Notification */}
       {toastMessage && (
@@ -341,7 +341,7 @@ export const App: React.FC = () => {
       />
 
       {/* ================= PAGE ROUTING VIEW ================= */}
-      <div className="flex-1">
+      <div className="flex-1 w-full max-w-full overflow-x-hidden">
         
         {/* VIEW 1: DEDICATED ORDERS PAGE */}
         {currentView === 'orders' && (
@@ -446,7 +446,7 @@ export const App: React.FC = () => {
 
         {/* VIEW 6: HOMEPAGE (EDITORIAL LUXURY COMMERCE) */}
         {currentView === 'home' && (
-          <main>
+          <main className="w-full max-w-full overflow-x-hidden">
             {/* Full-screen Editorial Hero Banner (Model clearly visible at top, text at bottom) */}
             <HeroBanner
               onShopCombos={() => handleSelectCategory('combos')}

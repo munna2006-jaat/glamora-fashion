@@ -629,7 +629,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <input
                   type="text"
                   required
-                  placeholder="admin@glamora.site"
                   value={loginUser}
                   onChange={(e) => setLoginUser(e.target.value)}
                   className="w-full bg-glamora-cream/50 border border-glamora-blush rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-glamora-rose font-medium text-xs"
@@ -641,7 +640,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <input
                   type="password"
                   required
-                  placeholder="••••••••••••"
                   value={loginPass}
                   onChange={(e) => setLoginPass(e.target.value)}
                   className="w-full bg-glamora-cream/50 border border-glamora-blush rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-glamora-rose text-xs"
@@ -659,7 +657,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </div>
 
               <div className="p-3 bg-emerald-50/60 rounded-xl text-[11px] text-gray-600 text-center border border-emerald-100/80">
-                🔒 Protected Admin Portal: Authorized Admin ID <b className="text-glamora-charcoal">admin@glamora.site</b>
+                🔒 Protected Admin Portal: Authorized Admin Personnel Only
               </div>
             </form>
           </div>

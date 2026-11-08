@@ -20,7 +20,7 @@ export const Footer: React.FC<FooterProps> = ({
   };
 
   return (
-    <footer className="bg-glamora-charcoal text-glamora-cream">
+    <footer className="bg-glamora-charcoal text-glamora-cream w-full max-w-full overflow-hidden">
       
       {/* Brand Value Props Banner */}
       <div className="border-b border-white/10 py-10 px-4 sm:px-6 lg:px-8">
@@ -55,10 +55,10 @@ export const Footer: React.FC<FooterProps> = ({
           {/* Brand Info */}
           <div className="lg:col-span-2 space-y-4">
             <div>
-              <span className="font-serif text-3xl font-extrabold tracking-[0.25em] text-white uppercase">
+              <span className="font-serif text-2xl sm:text-3xl font-extrabold tracking-[0.14em] sm:tracking-[0.25em] text-white uppercase">
                 GLAMORA
               </span>
-              <span className="block text-[10px] tracking-[0.35em] text-glamora-rose font-sans font-medium uppercase mt-1">
+              <span className="block text-[9px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.35em] text-glamora-rose font-sans font-medium uppercase mt-1">
                 Your Style. Your Story.
               </span>
             </div>

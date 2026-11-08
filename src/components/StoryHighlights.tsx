@@ -15,33 +15,35 @@ export const StoryHighlights: React.FC<StoryHighlightsProps> = ({ onSelectCatego
   ];
 
   return (
-    <section className="py-6 sm:py-8 bg-white border-b border-glamora-blush/40 overflow-x-auto scrollbar-none">
-      <div className="max-w-7xl mx-auto px-4 flex items-center justify-start sm:justify-center gap-4 sm:gap-8 min-w-max">
-        {stories.map((story) => (
-          <button
-            key={story.id}
-            onClick={() => onSelectCategory(story.id)}
-            className="flex flex-col items-center group cursor-pointer"
-          >
-            <div className="relative p-1 rounded-full bg-gradient-to-tr from-glamora-gold via-glamora-rose to-glamora-blush group-hover:scale-105 transition-transform duration-300">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden border-2 border-white bg-glamora-cream">
-                <img
-                  src={story.img}
-                  alt={story.label}
-                  className="w-full h-full object-cover object-center group-hover:scale-110 transition duration-500"
-                />
+    <section className="py-5 sm:py-8 bg-white border-b border-glamora-blush/40 w-full max-w-full overflow-hidden">
+      <div className="w-full overflow-x-auto scrollbar-none px-4">
+        <div className="flex items-center justify-start sm:justify-center gap-4 sm:gap-8 w-max sm:w-auto mx-auto pb-1">
+          {stories.map((story) => (
+            <button
+              key={story.id}
+              onClick={() => onSelectCategory(story.id)}
+              className="flex flex-col items-center group cursor-pointer flex-shrink-0"
+            >
+              <div className="relative p-1 rounded-full bg-gradient-to-tr from-glamora-gold via-glamora-rose to-glamora-blush group-hover:scale-105 transition-transform duration-300">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden border-2 border-white bg-glamora-cream">
+                  <img
+                    src={story.img}
+                    alt={story.label}
+                    className="w-full h-full object-cover object-center group-hover:scale-110 transition duration-500"
+                  />
+                </div>
+                {story.badge && (
+                  <span className="absolute -top-1 -right-1 bg-glamora-charcoal text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-tighter shadow-sm border border-white">
+                    {story.badge}
+                  </span>
+                )}
               </div>
-              {story.badge && (
-                <span className="absolute -top-1 -right-1 bg-glamora-charcoal text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-tighter shadow-sm border border-white">
-                  {story.badge}
-                </span>
-              )}
-            </div>
-            <span className="mt-2 text-[11px] sm:text-xs font-medium text-glamora-charcoal group-hover:text-glamora-rose transition tracking-tight">
-              {story.label}
-            </span>
-          </button>
-        ))}
+              <span className="mt-2 text-[11px] sm:text-xs font-medium text-glamora-charcoal group-hover:text-glamora-rose transition tracking-tight">
+                {story.label}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
     </section>
   );

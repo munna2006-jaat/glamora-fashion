@@ -48,41 +48,39 @@ export const Navbar: React.FC<NavbarProps> = ({
   ).slice(0, 6);
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-glamora-blush/60 transition-all duration-300">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-glamora-blush/60 transition-all duration-300 w-full max-w-full overflow-hidden">
       {/* Main Bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 sm:h-20 gap-1 sm:gap-4">
           
-          {/* Mobile Menu Button */}
-          <div className="flex items-center lg:hidden">
+          {/* Mobile Menu & Search Group */}
+          <div className="flex items-center lg:hidden flex-shrink-0">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-glamora-charcoal hover:text-glamora-rose transition cursor-pointer"
+              className="p-1.5 sm:p-2 text-glamora-charcoal hover:text-glamora-rose transition cursor-pointer"
               aria-label="Toggle menu"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}
+            </button>
+            <button
+              onClick={() => setShowSearchModal(!showSearchModal)}
+              className="p-1.5 sm:p-2 text-glamora-charcoal hover:text-glamora-rose transition cursor-pointer ml-0.5"
+              aria-label="Search"
+            >
+              <Search className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
 
-          {/* Search Trigger (Mobile) */}
-          <button
-            onClick={() => setShowSearchModal(!showSearchModal)}
-            className="p-2 text-glamora-charcoal hover:text-glamora-rose lg:hidden cursor-pointer"
-            aria-label="Search"
-          >
-            <Search className="w-5 h-5" />
-          </button>
-
           {/* GLAMORA Wordmark Logo */}
           <div
-            className="flex-1 lg:flex-none text-center lg:text-left cursor-pointer"
+            className="flex-1 lg:flex-none text-center lg:text-left cursor-pointer min-w-0 px-1"
             onClick={() => onNavigate('home')}
           >
             <div className="inline-block group">
-              <span className="font-serif text-2xl sm:text-3xl font-extrabold tracking-[0.25em] text-glamora-charcoal uppercase transition-colors group-hover:text-glamora-rose">
+              <span className="font-serif text-lg sm:text-2xl lg:text-3xl font-extrabold tracking-[0.14em] sm:tracking-[0.25em] text-glamora-charcoal uppercase transition-colors group-hover:text-glamora-rose whitespace-nowrap">
                 GLAMORA
               </span>
-              <span className="block text-[9px] sm:text-[10px] tracking-[0.35em] text-glamora-rose-dark font-sans font-medium uppercase mt-0.5">
+              <span className="block text-[8px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.35em] text-glamora-rose-dark font-sans font-medium uppercase mt-0.5 whitespace-nowrap">
                 Your Style. Your Story.
               </span>
             </div>
@@ -142,7 +140,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Action Icons */}
-          <div className="flex items-center space-x-2.5 sm:space-x-4">
+          <div className="flex items-center space-x-1 sm:space-x-3 flex-shrink-0">
             
             {/* My Orders Button */}
             <button
@@ -167,11 +165,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Customer Login / Profile */}
             <button
               onClick={() => onNavigate('login')}
-              className="flex items-center gap-1.5 text-xs text-glamora-charcoal hover:text-glamora-rose font-semibold transition cursor-pointer p-2 rounded-full hover:bg-glamora-cream"
+              className="flex items-center gap-1 text-xs text-glamora-charcoal hover:text-glamora-rose font-semibold transition cursor-pointer p-1.5 sm:p-2 rounded-full hover:bg-glamora-cream"
               title={currentUser ? `Profile (${currentUser.name})` : 'Sign In'}
             >
-              <div className="w-7 h-7 rounded-full bg-glamora-blush/60 flex items-center justify-center text-glamora-rose-dark font-bold">
-                {currentUser ? currentUser.name.charAt(0).toUpperCase() : <UserIcon className="w-4 h-4" />}
+              <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-glamora-blush/60 flex items-center justify-center text-glamora-rose-dark font-bold text-xs">
+                {currentUser ? currentUser.name.charAt(0).toUpperCase() : <UserIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
               </div>
               <span className="hidden xl:inline truncate max-w-20">
                 {currentUser ? currentUser.name.split(' ')[0] : 'Sign In'}
@@ -181,12 +179,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Wishlist */}
             <button
               onClick={onOpenWishlist}
-              className="relative p-2 text-glamora-charcoal hover:text-glamora-rose transition cursor-pointer"
+              className="relative p-1.5 sm:p-2 text-glamora-charcoal hover:text-glamora-rose transition cursor-pointer"
               aria-label="Wishlist"
             >
-              <Heart className="w-5 h-5" />
+              <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
               {wishlistCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-glamora-rose text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-sm">
+                <span className="absolute -top-0.5 -right-0.5 bg-glamora-rose text-white text-[9px] sm:text-[10px] font-bold w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full flex items-center justify-center shadow-sm">
                   {wishlistCount}
                 </span>
               )}
@@ -195,13 +193,13 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Cart Drawer */}
             <button
               onClick={onOpenCart}
-              className="relative flex items-center gap-2 bg-glamora-charcoal hover:bg-glamora-rose-dark text-white rounded-full py-2 px-3.5 sm:px-4 transition shadow-soft cursor-pointer"
+              className="relative flex items-center gap-1.5 sm:gap-2 bg-glamora-charcoal hover:bg-glamora-rose-dark text-white rounded-full py-1.5 px-2.5 sm:py-2 sm:px-4 transition shadow-soft cursor-pointer flex-shrink-0"
               aria-label="Shopping Cart"
             >
-              <ShoppingBag className="w-4 h-4 text-glamora-blush" />
-              <span className="text-xs font-semibold">Cart</span>
+              <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-glamora-blush" />
+              <span className="hidden sm:inline text-xs font-semibold">Cart</span>
               {cartCount > 0 && (
-                <span className="bg-glamora-rose text-white text-[11px] font-bold px-1.5 py-0.5 rounded-full min-w-4 text-center">
+                <span className="bg-glamora-rose text-white text-[10px] sm:text-[11px] font-bold px-1.5 py-0.2 rounded-full min-w-4 text-center">
                   {cartCount}
                 </span>
               )}
