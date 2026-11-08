@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CartItem, Coupon, Address, Order, AppSettings } from '../types';
 import { X, ShieldCheck, CheckCircle2, QrCode, CreditCard, Banknote, Building2, Truck, Lock, ArrowRight, Copy, Check } from 'lucide-react';
+import { trackMetaEvent } from '../utils/metaPixel';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -99,6 +100,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       });
       const order = await res.json();
       setIsSubmitting(false);
+      trackMetaEvent('Purchase', {
+        value: order.total,
+        currency: 'INR',
+        order_id: order.orderNumber,
+        content_name: 'Glamora Order'
+      });
       onOrderPlaced(order);
     } catch (err) {
       // Fallback local order
@@ -121,6 +128,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         estimatedDelivery: '3–5 Business Days'
       };
       setIsSubmitting(false);
+      trackMetaEvent('Purchase', {
+        value: order.total,
+        currency: 'INR',
+        order_id: order.orderNumber,
+        content_name: 'Glamora Order'
+      });
       onOrderPlaced(order);
     }
   };

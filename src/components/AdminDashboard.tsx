@@ -25,7 +25,13 @@ import {
   Key,
   ShieldCheck,
   Check,
-  AlertCircle
+  AlertCircle,
+  Layers,
+  Video,
+  Target,
+  ExternalLink,
+  Copy,
+  Download
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -56,7 +62,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [loginError, setLoginError] = useState('');
 
   // Dashboard Tabs
-  const [activeTab, setActiveTab] = useState<'kpis' | 'products' | 'combos' | 'qr' | 'orders' | 'settings'>('kpis');
+  const [activeTab, setActiveTab] = useState<'kpis' | 'products' | 'combos' | 'qr' | 'orders' | 'meta-ads' | 'settings'>('kpis');
   const [orders, setOrders] = useState<Order[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -70,9 +76,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [qrUpiId, setQrUpiId] = useState(settings?.upiId || 'glamora@upi');
   const [qrUpiName, setQrUpiName] = useState(settings?.upiName || 'GLAMORA FASHION PVT LTD');
   const [qrPreviewUrl, setQrPreviewUrl] = useState(settings?.qrCodeUrl || '');
-  const [qrPool, setQrPool] = useState<QrCodeItem[]>(settings?.qrCodes || []);
+  const [qrPool, setQrPool] = useState<QrCodeItem[]>(Array.isArray(settings?.qrCodes) ? settings.qrCodes : []);
   const [selectedBatchFiles, setSelectedBatchFiles] = useState<{ title: string; image: string; upiId: string; upiName: string }[]>([]);
   const [isBatchUploading, setIsBatchUploading] = useState(false);
+
+  // Meta Pixel & Domain State
+  const [metaPixelId, setMetaPixelId] = useState(settings?.metaPixelId || '');
+  const [siteDomain, setSiteDomain] = useState(settings?.siteDomain || 'glamora.living');
+  const [copiedAdField, setCopiedAdField] = useState('');
 
   // Password & Security State
   const [currentPass, setCurrentPass] = useState('');
@@ -86,15 +97,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [whatsapp, setWhatsapp] = useState(settings?.whatsappNumber || '+91 98765 43210');
   const [freeShippingAbove, setFreeShippingAbove] = useState(settings?.freeShippingAbove || 799);
 
+  // Safe QR Pool (prevents any undefined array crashes)
+  const safeQrPool = Array.isArray(qrPool) ? qrPool.filter(Boolean) : [];
+
   useEffect(() => {
     if (settings) {
-      setQrUpiId(settings.upiId);
-      setQrUpiName(settings.upiName);
-      setQrPreviewUrl(settings.qrCodeUrl);
-      setQrPool(settings.qrCodes || []);
-      setAnnouncement(settings.announcementText);
-      setWhatsapp(settings.whatsappNumber);
-      setFreeShippingAbove(settings.freeShippingAbove);
+      setQrUpiId(settings.upiId || 'glamora@upi');
+      setQrUpiName(settings.upiName || 'GLAMORA FASHION PVT LTD');
+      setQrPreviewUrl(settings.qrCodeUrl || '');
+      setQrPool(Array.isArray(settings.qrCodes) ? settings.qrCodes : []);
+      setMetaPixelId(settings.metaPixelId || '');
+      setSiteDomain(settings.siteDomain || 'glamora.living');
+      setAnnouncement(settings.announcementText || '');
+      setWhatsapp(settings.whatsappNumber || '+91 98765 43210');
+      setFreeShippingAbove(settings.freeShippingAbove || 799);
     }
   }, [settings]);
 
@@ -322,12 +338,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleSaveSettingsWithPool = async (updatedPool?: QrCodeItem[], newQrUrl?: string, newUpiId?: string, newUpiName?: string) => {
-    const poolToSave = updatedPool || qrPool;
+    const poolToSave = Array.isArray(updatedPool) ? updatedPool : safeQrPool;
     const updatedSettings: AppSettings = {
       upiId: newUpiId || qrUpiId,
       upiName: newUpiName || qrUpiName,
       qrCodeUrl: newQrUrl || qrPreviewUrl,
       qrCodes: poolToSave,
+      metaPixelId: metaPixelId.trim(),
+      siteDomain: siteDomain.trim() || 'glamora.living',
       announcementText: announcement,
       whatsappNumber: whatsapp,
       shippingCharge: 70,
@@ -342,7 +360,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       });
       if (res.ok) {
         onUpdateSettings(updatedSettings);
-        setSaveMessage('QR Codes Pool & Store Settings saved!');
+        setSaveMessage('Store Settings, QR Codes & Meta Pixel saved successfully!');
         setTimeout(() => setSaveMessage(''), 3000);
       }
     } catch (err) {
@@ -694,6 +712,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               Customer Orders ({orders.length})
             </button>
             <button
+              onClick={() => setActiveTab('meta-ads')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition flex items-center gap-1.5 ${
+                activeTab === 'meta-ads' ? 'bg-[#1877F2] text-white shadow-sm' : 'bg-blue-50 text-[#1877F2] hover:bg-blue-100'
+              }`}
+            >
+              <Target className="w-4 h-4" />
+              <span>Meta Pixel & Ads Hub</span>
+            </button>
+            <button
               onClick={() => setActiveTab('settings')}
               className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition flex items-center gap-1.5 ${
                 activeTab === 'settings' ? 'bg-glamora-charcoal text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -912,21 +939,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <div className="pt-4 border-t border-gray-100">
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="font-bold text-sm text-glamora-charcoal flex items-center gap-2">
-                        <span>Current Store QR Pool ({qrPool.length})</span>
+                        <span>Current Store QR Pool ({safeQrPool.length})</span>
                         <span className="text-xs font-normal text-gray-500">
-                          ({qrPool.filter(q => q.isActive).length} Active)
+                          ({safeQrPool.filter(q => q && q.isActive).length} Active)
                         </span>
                       </h4>
                     </div>
 
-                    {qrPool.length === 0 ? (
+                    {safeQrPool.length === 0 ? (
                       <div className="p-8 text-center text-xs text-gray-500 bg-gray-50 rounded-2xl border border-gray-100">
                         No additional QR codes in the pool. Use the batch upload above to add multiple QRs.
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {qrPool.map((qr) => {
-                          const isCurrentlyPrimary = qrPreviewUrl === qr.image;
+                        {safeQrPool.map((qr) => {
+                          if (!qr) return null;
+                          const isCurrentlyPrimary = Boolean(qr.image && qrPreviewUrl === qr.image);
                           return (
                             <div
                               key={qr.id}
@@ -934,7 +962,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                 isCurrentlyPrimary
                                   ? 'bg-glamora-blush/20 border-glamora-rose shadow-sm'
                                   : qr.isActive
-                                  ? 'bg-white border-gray-200 shadow-xs'
+                                  ? 'bg-white border-gray-200 shadow-sm'
                                   : 'bg-gray-100/70 border-gray-200 opacity-60'
                               }`}
                             >
@@ -1481,14 +1509,416 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </div>
             )}
 
+            {/* TAB: META PIXEL & META ADS HUB */}
+            {activeTab === 'meta-ads' && (
+              <div className="space-y-6 max-w-5xl">
+                
+                {/* 1. Meta Pixel Setup & Verification Card */}
+                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-sm">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-gray-100">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-2xl bg-[#1877F2]/10 text-[#1877F2] flex items-center justify-center font-bold flex-shrink-0">
+                        <Target className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h3 className="font-serif text-xl font-bold text-glamora-charcoal">
+                          Meta (Facebook) Pixel Configuration
+                        </h3>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          Meta Pixel aapki website par customers ke har action (Product View, Add to Cart, Checkout, Purchase) ko track karta hai.
+                        </p>
+                      </div>
+                    </div>
+
+                    <span className={`text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 self-start sm:self-auto ${
+                      metaPixelId.trim()
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : 'bg-amber-50 text-amber-700 border border-amber-200'
+                    }`}>
+                      <span className={`w-2 h-2 rounded-full ${metaPixelId.trim() ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                      <span>{metaPixelId.trim() ? 'Pixel Active & Firing Events' : 'Pixel Not Configured'}</span>
+                    </span>
+                  </div>
+
+                  <form onSubmit={handleSaveSettings} className="space-y-4 text-xs max-w-2xl">
+                    <div>
+                      <label className="block font-semibold text-gray-700 mb-1">
+                        Meta Pixel ID (Dataset ID from Meta Events Manager) *
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={metaPixelId}
+                          onChange={(e) => setMetaPixelId(e.target.value)}
+                          placeholder="e.g. 192837465019283"
+                          className="flex-1 bg-gray-50 border border-gray-200 rounded-xl p-3 font-mono text-xs font-bold text-glamora-charcoal focus:ring-1 focus:ring-glamora-rose"
+                        />
+                        <button
+                          type="submit"
+                          className="bg-[#1877F2] hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl transition flex items-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap"
+                        >
+                          <Save className="w-4 h-4" />
+                          <span>Save Pixel ID</span>
+                        </button>
+                      </div>
+                      <span className="text-[11px] text-gray-500 block mt-1.5">
+                        Pixel ID save karte hi poori website par Meta tracking code auto-activate ho jayega.
+                      </span>
+                    </div>
+                  </form>
+
+                  {/* Auto-Tracked E-Commerce Events List */}
+                  <div className="mt-6 pt-6 border-t border-gray-100">
+                    <span className="text-xs font-bold text-gray-700 block mb-3">
+                      Standard Events Automatically Tracked by Glamora:
+                    </span>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                      <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 text-center">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 block">Active</span>
+                        <span className="font-mono font-bold text-xs text-glamora-charcoal mt-1 block">PageView</span>
+                        <span className="text-[10px] text-gray-400 block mt-0.5">Every Page Visit</span>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 text-center">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 block">Active</span>
+                        <span className="font-mono font-bold text-xs text-glamora-charcoal mt-1 block">ViewContent</span>
+                        <span className="text-[10px] text-gray-400 block mt-0.5">Product & Combo Open</span>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 text-center">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 block">Active</span>
+                        <span className="font-mono font-bold text-xs text-glamora-charcoal mt-1 block">AddToCart</span>
+                        <span className="text-[10px] text-gray-400 block mt-0.5">Item Added to Bag</span>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 text-center">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 block">Active</span>
+                        <span className="font-mono font-bold text-xs text-glamora-charcoal mt-1 block">InitiateCheckout</span>
+                        <span className="text-[10px] text-gray-400 block mt-0.5">Address Filled</span>
+                      </div>
+                      <div className="bg-emerald-50/70 p-3 rounded-xl border border-emerald-200 text-center">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 block">Primary KPI</span>
+                        <span className="font-mono font-bold text-xs text-emerald-900 mt-1 block">Purchase</span>
+                        <span className="text-[10px] text-emerald-700 block mt-0.5">Order Placed (₹ Total)</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Download Ready-To-Run Meta Video Ad (1080x1920 9:16 Vertical) */}
+                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-sm">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-gray-100">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Video className="w-5 h-5 text-glamora-rose" />
+                        <h3 className="font-serif text-xl font-bold text-glamora-charcoal">
+                          Ready-to-Run Video Ad (Instagram Reels & Stories)
+                        </h3>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        High-Converting 9:16 Vertical Full HD Video Ad (1080x1920) featuring Jaipur Kurtis, Flat ₹499 Dhamaka Sale & Combos.
+                      </p>
+                    </div>
+
+                    <a
+                      href="/ads/glamora_ad_video.mp4"
+                      download="glamora_jaipur_kurti_ad_9x16.mp4"
+                      className="bg-glamora-charcoal hover:bg-glamora-rose text-white text-xs font-bold px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow-sm cursor-pointer self-start sm:self-auto"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>Download Video Ad (.mp4)</span>
+                    </a>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                    {/* Video Player Preview */}
+                    <div className="md:col-span-5 bg-black rounded-2xl overflow-hidden shadow-md max-w-[280px] mx-auto border border-gray-200">
+                      <video
+                        src="/ads/glamora_ad_video.mp4"
+                        controls
+                        playsInline
+                        className="w-full h-auto object-cover aspect-[9/16]"
+                        poster="/ads/glamora_ad_story_1080x1920.jpg"
+                      >
+                        Your browser does not support the video tag.
+                      </video>
+                    </div>
+
+                    {/* Video Specifications & Features */}
+                    <div className="md:col-span-7 space-y-4 text-xs">
+                      <div className="bg-glamora-cream/60 p-4 rounded-2xl border border-glamora-blush space-y-2">
+                        <span className="text-[11px] font-bold text-glamora-charcoal block">Ad Creative Specifications:</span>
+                        <ul className="space-y-1.5 text-gray-600 list-disc list-inside">
+                          <li><b>Format:</b> MP4 Video (H.264 / AAC)</li>
+                          <li><b>Resolution:</b> 1080 × 1920 Full HD (9:16 Vertical Ratio)</li>
+                          <li><b>Placement:</b> Instagram Reels, Instagram Stories, Facebook Reels, Mobile Feed</li>
+                          <li><b>Offer Highlighted:</b> Jaipuri Kurtis Flat ₹499 | Kurti + Baggy Jeans Combos ₹699</li>
+                          <li><b>Target Domain:</b> <code className="bg-white px-1.5 py-0.5 rounded border border-gray-200 font-bold text-glamora-rose">glamora.living</code></li>
+                        </ul>
+                      </div>
+
+                      <div className="p-4 rounded-2xl bg-blue-50/60 border border-blue-200/80 text-blue-900 space-y-1">
+                        <span className="font-bold text-xs block">💡 Pro Meta Ads Tip:</span>
+                        <p className="text-[11px] leading-relaxed">
+                          Instagram Reels Ads par vertical video ads chalane se Cost Per Purchase (CPA) 40% sasta padta hai kyunki users fullscreen experience me instant click karke website par aate hain.
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2 pt-2">
+                        <a
+                          href="/ads/glamora_ad_feed_1080x1080.jpg"
+                          download="glamora_feed_ad_1080x1080.jpg"
+                          className="bg-white hover:bg-gray-100 text-gray-800 border border-gray-200 font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 text-xs shadow-xs"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          <span>Download 1:1 Feed Image Ad</span>
+                        </a>
+                        <a
+                          href="/ads/glamora_ad_story_1080x1920.jpg"
+                          download="glamora_story_ad_1080x1920.jpg"
+                          className="bg-white hover:bg-gray-100 text-gray-800 border border-gray-200 font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 text-xs shadow-xs"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          <span>Download 9:16 Story Image Ad</span>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Ready-To-Paste Ad Copy (Primary Text, Headline, Description) */}
+                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Copy className="w-5 h-5 text-glamora-rose" />
+                    <h3 className="font-serif text-xl font-bold text-glamora-charcoal">
+                      High-Converting Meta Ad Copy (Ready to Paste)
+                    </h3>
+                  </div>
+                  <p className="text-xs text-gray-500 mb-6">
+                    Meta Ads Manager me jab aap Ad create karenge to niche diye gaye fields ko direct copy karke paste karein:
+                  </p>
+
+                  <div className="space-y-4 text-xs">
+                    {/* Primary Text */}
+                    <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-bold text-gray-700">1. Primary Text (Caption):</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const txt = `🔥 JAIPUR KURTI DHAMAKA SALE IS LIVE! 🔥\n\nPure Cotton Mulmul & Sanganeri Handblock Kurtis starting at just ₹499! 🌸\n✨ Exclusive Kurti + Baggy Jeans Combos at ₹699\n✨ 100% Breathable Jaipuri Fabrics\n✨ Free Delivery on Orders Above ₹799\n✨ Fast 2-3 Days Dispatch with Live Tracking\n\n👉 Limited Stock Only! Tap "Shop Now" & Claim Your Combo!`;
+                            navigator.clipboard.writeText(txt);
+                            setCopiedAdField('primary');
+                            setTimeout(() => setCopiedAdField(''), 2000);
+                          }}
+                          className="bg-white hover:bg-gray-100 text-gray-700 border border-gray-200 font-bold px-2.5 py-1 rounded-lg transition flex items-center gap-1"
+                        >
+                          {copiedAdField === 'primary' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                          <span>{copiedAdField === 'primary' ? 'Copied!' : 'Copy Text'}</span>
+                        </button>
+                      </div>
+                      <pre className="whitespace-pre-wrap font-sans text-gray-700 leading-relaxed bg-white p-3 rounded-xl border border-gray-100 text-[11px]">
+{`🔥 JAIPUR KURTI DHAMAKA SALE IS LIVE! 🔥
+
+Pure Cotton Mulmul & Sanganeri Handblock Kurtis starting at just ₹499! 🌸
+✨ Exclusive Kurti + Baggy Jeans Combos at ₹699
+✨ 100% Breathable Jaipuri Fabrics
+✨ Free Delivery on Orders Above ₹799
+✨ Fast 2-3 Days Dispatch with Live Tracking
+
+👉 Limited Stock Only! Tap "Shop Now" & Claim Your Combo!`}
+                      </pre>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Headline */}
+                      <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-bold text-gray-700">2. Headline:</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText('Jaipuri Kurtis & Combos - Flat ₹499 Dhamaka Sale');
+                              setCopiedAdField('headline');
+                              setTimeout(() => setCopiedAdField(''), 2000);
+                            }}
+                            className="bg-white hover:bg-gray-100 text-gray-700 border border-gray-200 font-bold px-2.5 py-1 rounded-lg transition flex items-center gap-1"
+                          >
+                            {copiedAdField === 'headline' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                            <span>{copiedAdField === 'headline' ? 'Copied!' : 'Copy'}</span>
+                          </button>
+                        </div>
+                        <div className="bg-white p-2.5 rounded-xl border border-gray-100 font-bold text-glamora-charcoal">
+                          Jaipuri Kurtis & Combos - Flat ₹499 Dhamaka Sale
+                        </div>
+                      </div>
+
+                      {/* Description */}
+                      <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-bold text-gray-700">3. Description:</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText('Free Shipping Above ₹799 • 24hr Dispatch Guarantee');
+                              setCopiedAdField('desc');
+                              setTimeout(() => setCopiedAdField(''), 2000);
+                            }}
+                            className="bg-white hover:bg-gray-100 text-gray-700 border border-gray-200 font-bold px-2.5 py-1 rounded-lg transition flex items-center gap-1"
+                          >
+                            {copiedAdField === 'desc' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                            <span>{copiedAdField === 'desc' ? 'Copied!' : 'Copy'}</span>
+                          </button>
+                        </div>
+                        <div className="bg-white p-2.5 rounded-xl border border-gray-100 font-medium text-gray-600">
+                          Free Shipping Above ₹799 • 24hr Dispatch Guarantee
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Website URL & CTA */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-bold text-gray-700">4. Website URL (Destination):</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText('https://glamora.living');
+                              setCopiedAdField('url');
+                              setTimeout(() => setCopiedAdField(''), 2000);
+                            }}
+                            className="bg-white hover:bg-gray-100 text-gray-700 border border-gray-200 font-bold px-2.5 py-1 rounded-lg transition flex items-center gap-1"
+                          >
+                            {copiedAdField === 'url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                            <span>{copiedAdField === 'url' ? 'Copied!' : 'Copy'}</span>
+                          </button>
+                        </div>
+                        <div className="bg-white p-2.5 rounded-xl border border-gray-100 font-mono font-bold text-glamora-rose truncate">
+                          https://glamora.living
+                        </div>
+                      </div>
+
+                      <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200">
+                        <span className="font-bold text-gray-700 block mb-2">5. Call to Action (Button):</span>
+                        <div className="bg-white p-2.5 rounded-xl border border-gray-100 font-bold text-glamora-charcoal">
+                          Shop Now (ऑर्डर करें)
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 4. Complete Meta Ads Setup & Campaign Step-by-Step Guide */}
+                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <ExternalLink className="w-5 h-5 text-glamora-rose" />
+                    <h3 className="font-serif text-xl font-bold text-glamora-charcoal">
+                      Step-by-Step Guide: Meta Par Ads Kaise Chalayein
+                    </h3>
+                  </div>
+                  <p className="text-xs text-gray-500 mb-6">
+                    Agar aap pehli baar Meta (Facebook / Instagram) ads chala rahe hain, to niche diye 5 simple steps follow karein:
+                  </p>
+
+                  <div className="space-y-4 text-xs">
+                    <div className="flex items-start gap-3 p-4 rounded-2xl bg-gray-50 border border-gray-200">
+                      <div className="w-7 h-7 rounded-full bg-glamora-charcoal text-white flex items-center justify-center font-bold flex-shrink-0 text-xs">
+                        1
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-glamora-charcoal text-sm">Meta Ads Manager Open Karein</h4>
+                        <p className="text-gray-600 text-xs mt-1 leading-relaxed">
+                          Apne computer browser me <a href="https://adsmanager.facebook.com" target="_blank" rel="noreferrer" className="text-glamora-rose font-bold underline">adsmanager.facebook.com</a> kholein aur apne Facebook Page / Instagram business account se login karein.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3 p-4 rounded-2xl bg-gray-50 border border-gray-200">
+                      <div className="w-7 h-7 rounded-full bg-glamora-charcoal text-white flex items-center justify-center font-bold flex-shrink-0 text-xs">
+                        2
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-glamora-charcoal text-sm">Campaign Objective: "Sales" Select Karein</h4>
+                        <p className="text-gray-600 text-xs mt-1 leading-relaxed">
+                          Green <b>+ Create</b> button par click karein aur campaign objective me <b>Sales</b> (Conversions) chunein. Isse Meta unhi logo ko ad dikhayega jo khareedne ke chances sabse jyada rakhte hain.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3 p-4 rounded-2xl bg-gray-50 border border-gray-200">
+                      <div className="w-7 h-7 rounded-full bg-glamora-charcoal text-white flex items-center justify-center font-bold flex-shrink-0 text-xs">
+                        3
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-glamora-charcoal text-sm">Pixel & Conversion Event Select Karein</h4>
+                        <p className="text-gray-600 text-xs mt-1 leading-relaxed">
+                          Conversion Location me <b>Website</b> chunein, apna <b>Meta Pixel</b> select karein aur Conversion Event me <b>Purchase</b> select karein.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3 p-4 rounded-2xl bg-gray-50 border border-gray-200">
+                      <div className="w-7 h-7 rounded-full bg-glamora-charcoal text-white flex items-center justify-center font-bold flex-shrink-0 text-xs">
+                        4
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-glamora-charcoal text-sm">Budget & Audience Targeting Set Karein</h4>
+                        <div className="text-gray-600 text-xs mt-1 space-y-1">
+                          <div>• <b>Daily Budget:</b> ₹300 se ₹500 se shuru karein.</div>
+                          <div>• <b>Location:</b> India</div>
+                          <div>• <b>Age:</b> 18 – 45 Years</div>
+                          <div>• <b>Gender:</b> Women (Mahilayein)</div>
+                          <div>• <b>Interests:</b> Kurtis, Ethnic wear, Jaipur textiles, Online shopping, Fashion accessories</div>
+                          <div>• <b>Placements:</b> Advantage+ Placements (Reels & Feed recommended)</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3 p-4 rounded-2xl bg-gray-50 border border-gray-200">
+                      <div className="w-7 h-7 rounded-full bg-glamora-charcoal text-white flex items-center justify-center font-bold flex-shrink-0 text-xs">
+                        5
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-glamora-charcoal text-sm">Creative Upload Karein & Publish Karein!</h4>
+                        <p className="text-gray-600 text-xs mt-1 leading-relaxed">
+                          Upar di gayi <b>Video Ad (.mp4)</b> upload karein, <b>Primary Text</b> aur <b>Headline</b> paste karein, Destination URL me <code className="bg-gray-100 px-1 py-0.5 rounded font-bold">https://glamora.living</code> dalein, aur niche <b>Publish</b> button daba dein! 1-2 ghante me aapka ad live ho jayega aur orders aane shuru ho jayenge.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            )}
+
             {/* TAB: STORE SETTINGS & FULL ACCESS */}
             {activeTab === 'settings' && (
               <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-sm max-w-2xl">
                 <h3 className="font-serif text-lg font-bold text-glamora-charcoal mb-4">
-                  Full Store Settings & Announcements
+                  Full Store Settings, Domain & Meta Pixel
                 </h3>
 
                 <form onSubmit={handleSaveSettings} className="space-y-4 text-xs">
+                  <div>
+                    <label className="block font-semibold text-gray-700 mb-1">Official Store Domain</label>
+                    <input
+                      type="text"
+                      value={siteDomain}
+                      onChange={(e) => setSiteDomain(e.target.value)}
+                      placeholder="e.g. glamora.living"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 font-bold font-mono text-glamora-rose"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold text-gray-700 mb-1">Meta Pixel ID</label>
+                    <input
+                      type="text"
+                      value={metaPixelId}
+                      onChange={(e) => setMetaPixelId(e.target.value)}
+                      placeholder="e.g. 192837465019283"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 font-mono text-xs"
+                    />
+                  </div>
+
                   <div>
                     <label className="block font-semibold text-gray-700 mb-1">Top Announcement Bar Text</label>
                     <input
@@ -1522,7 +1952,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <div className="pt-2">
                     <button
                       type="submit"
-                      className="bg-glamora-charcoal hover:bg-glamora-rose text-white text-xs font-bold px-6 py-3 rounded-xl transition flex items-center gap-1.5 cursor-pointer"
+                      className="bg-glamora-charcoal hover:bg-glamora-rose text-white text-xs font-bold px-6 py-3 rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-sm"
                     >
                       <Save className="w-4 h-4" />
                       <span>Update Store Settings</span>

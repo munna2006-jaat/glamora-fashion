@@ -142,6 +142,8 @@ export interface AppSettings {
   upiName: string;
   qrCodeUrl: string;
   qrCodes?: QrCodeItem[];
+  metaPixelId?: string;
+  siteDomain?: string;
   announcementText: string;
   whatsappNumber: string;
   shippingCharge: number;

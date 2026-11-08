@@ -34,7 +34,9 @@ const initialSettings = {
   announcementText: '🔥 DHAMAKA SALE: JAIPURI KURTI + EARRING COMBOS AT JUST ₹499 | KURTI + BAGGY JEANS AT ₹699!',
   whatsappNumber: '+91 98765 43210',
   shippingCharge: 70,
-  freeShippingAbove: 799
+  freeShippingAbove: 799,
+  metaPixelId: '',
+  siteDomain: 'glamora.living'
 };
 
 const initialProducts = [

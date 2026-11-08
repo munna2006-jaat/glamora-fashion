@@ -30,6 +30,9 @@ import { PaymentPage } from './components/PaymentPage';
 import { OrderTrackPage } from './components/OrderTrackPage';
 import { AuthPage } from './components/AuthPage';
 
+// Meta Pixel Tracker
+import { initMetaPixel, trackMetaEvent } from './utils/metaPixel';
+
 type View = 'home' | 'orders' | 'address' | 'payment' | 'track' | 'login' | 'admin';
 
 const getViewFromUrl = (): View => {
@@ -162,6 +165,13 @@ export const App: React.FC = () => {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
+  // Initialize Meta Pixel when setting is available
+  useEffect(() => {
+    if (settings?.metaPixelId) {
+      initMetaPixel(settings.metaPixelId);
+    }
+  }, [settings?.metaPixelId]);
+
   const navigateTo = (view: View, trackingId?: string) => {
     setCurrentView(view);
     if (trackingId) setActiveTrackingId(trackingId);
@@ -170,6 +180,14 @@ export const App: React.FC = () => {
       window.history.pushState(null, '', targetPath);
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Meta Pixel PageView & Funnel Tracking
+    trackMetaEvent('PageView');
+    if (view === 'payment') {
+      trackMetaEvent('AddPaymentInfo');
+    } else if (view === 'address') {
+      trackMetaEvent('InitiateCheckout', { num_items: cartItems.length });
+    }
   };
 
   const showToast = (msg: string) => {
@@ -194,6 +212,12 @@ export const App: React.FC = () => {
     });
     showToast(`Added ${item.name} to your bag ✨`);
     setIsCartOpen(true);
+
+    trackMetaEvent('AddToCart', {
+      content_name: item.name,
+      value: item.price * item.quantity,
+      currency: 'INR'
+    });
   };
 
   const handleQuickAddProduct = (product: Product) => {

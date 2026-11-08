@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, ShieldCheck, QrCode, Copy, Check, Truck, AlertCircle, Sparkles, CreditCard, Lock, CheckCircle2, MapPin, Edit3 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { CartItem, Coupon, Order, Address, AppSettings, User } from '../types';
+import { trackMetaEvent } from '../utils/metaPixel';
 
 interface PaymentPageProps {
   cartItems: CartItem[];
@@ -128,6 +129,14 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
         particleCount: 110,
         spread: 80,
         origin: { y: 0.6 },
+      });
+
+      // Track Meta Pixel Purchase Event
+      trackMetaEvent('Purchase', {
+        value: placedOrder.total,
+        currency: 'INR',
+        order_id: placedOrder.orderNumber,
+        content_name: 'Glamora Order'
       });
 
       onOrderSuccess(placedOrder);
