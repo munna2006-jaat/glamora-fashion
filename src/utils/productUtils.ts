@@ -1,15 +1,14 @@
 import { Product } from '../types';
 
-export const isJewelryProduct = (p: Product): boolean => {
-  const text = `${p.name} ${p.subcategory || ''}`.toLowerCase();
-  const isBag = text.includes('bag') || text.includes('tote') || text.includes('purse') || text.includes('clutch');
-  if (isBag) return false;
-  return p.category === 'accessories' || Boolean(text.match(/earring|jhumk|necklace|pendant|jewel|kundan|pearl|gold|silver|chain|bracelet|bangle|ring|solitaire|drop|chandbali/i));
-};
-
 export const isBagProduct = (p: Product): boolean => {
   const text = `${p.name} ${p.subcategory || ''}`.toLowerCase();
-  return Boolean(text.match(/bag|tote|purse|clutch|shoulder/i));
+  return Boolean(text.match(/\b(bag|bags|tote|totes|purse|purses|clutch|handbag|handbags|backpack|sling)\b/i));
+};
+
+export const isJewelryProduct = (p: Product): boolean => {
+  if (isBagProduct(p)) return false;
+  const text = `${p.name} ${p.subcategory || ''}`.toLowerCase();
+  return p.category === 'accessories' || Boolean(text.match(/earring|jhumk|necklace|pendant|jewel|kundan|pearl|gold|silver|chain|bracelet|bangle|ring|solitaire|drop|chandbali/i));
 };
 
 export const getProductBadge = (p: Product): string => {
