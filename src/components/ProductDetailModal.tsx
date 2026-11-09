@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Product, CartItem } from '../types';
 import { X, Heart, Star, ShoppingBag, Truck, RotateCcw, ShieldCheck, Check, Sparkles, MapPin } from 'lucide-react';
+import { getProductBadge, isJewelryProduct, isBagProduct, isNonClothingProduct } from '../utils/productUtils';
 
 interface ProductDetailModalProps {
   product: Product | null;
@@ -150,7 +151,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
           <div className="p-6 sm:p-8 flex flex-col justify-between">
             <div>
               <div className="text-[11px] font-bold uppercase tracking-wider text-glamora-rose mb-1">
-                GLAMORA • {product.subcategory}
+                GLAMORA • {getProductBadge(product)}
               </div>
 
               <h1 className="font-serif text-2xl sm:text-3xl font-bold text-glamora-charcoal">
@@ -190,30 +191,41 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               </p>
 
               {/* Size Selector */}
-              <div className="mt-6">
-                <div className="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-glamora-charcoal mb-2">
-                  <span>Select Size:</span>
-                  <span className="text-glamora-rose font-medium lowercase text-[11px] underline cursor-pointer">
-                    View Size Chart (XS: 32", S: 34", M: 36", L: 38", XL: 40")
-                  </span>
+              {isNonClothingProduct(product) ? (
+                <div className="mt-6">
+                  <div className="text-xs font-bold uppercase tracking-wider text-glamora-charcoal mb-2">
+                    <span>Fit / Size:</span>
+                  </div>
+                  <div className="inline-block px-4 py-2 rounded-xl text-xs font-bold bg-glamora-charcoal text-white shadow-sm">
+                    {isJewelryProduct(product) ? 'Free Size (Standard)' : 'One Size (Standard Fit)'}
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {product.sizes.map((size) => (
-                    <button
-                      key={size}
-                      type="button"
-                      onClick={() => setSelectedSize(size)}
-                      className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${
-                        selectedSize === size
-                          ? 'bg-glamora-charcoal text-white shadow-sm'
-                          : 'bg-glamora-cream text-glamora-charcoal border border-glamora-blush hover:border-glamora-rose'
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
+              ) : (
+                <div className="mt-6">
+                  <div className="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-glamora-charcoal mb-2">
+                    <span>Select Size:</span>
+                    <span className="text-glamora-rose font-medium lowercase text-[11px] underline cursor-pointer">
+                      View Size Chart (XS: 32", S: 34", M: 36", L: 38", XL: 40")
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {product.sizes.map((size) => (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() => setSelectedSize(size)}
+                        className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                          selectedSize === size
+                            ? 'bg-glamora-charcoal text-white shadow-sm'
+                            : 'bg-glamora-cream text-glamora-charcoal border border-glamora-blush hover:border-glamora-rose'
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Colors */}
               {product.colors && product.colors.length > 0 && (
@@ -240,8 +252,28 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
               {/* Fabric & Care Specs */}
               <div className="mt-5 p-3.5 rounded-2xl bg-glamora-cream/60 border border-glamora-blush/60 space-y-1 text-xs">
-                <div><span className="font-semibold text-glamora-charcoal">Fabric:</span> <span className="text-gray-600">{product.fabric}</span></div>
-                <div><span className="font-semibold text-glamora-charcoal">Care:</span> <span className="text-gray-600">{product.care}</span></div>
+                <div>
+                  <span className="font-semibold text-glamora-charcoal">
+                    {isJewelryProduct(product) || isBagProduct(product) ? 'Material:' : 'Fabric:'}
+                  </span>{' '}
+                  <span className="text-gray-600">
+                    {isJewelryProduct(product)
+                      ? (product.fabric && !product.fabric.includes('Cotton') ? product.fabric : 'Handcrafted 18K Gold Plated Brass & Pearls')
+                      : isBagProduct(product)
+                      ? (product.fabric && !product.fabric.includes('Cotton') ? product.fabric : 'Premium PU Leather & Canvas')
+                      : product.fabric}
+                  </span>
+                </div>
+                <div>
+                  <span className="font-semibold text-glamora-charcoal">Care:</span>{' '}
+                  <span className="text-gray-600">
+                    {isJewelryProduct(product)
+                      ? 'Keep away from water and perfume, store in dry pouch'
+                      : isBagProduct(product)
+                      ? 'Wipe clean with soft damp cloth'
+                      : product.care}
+                  </span>
+                </div>
                 <div><span className="font-semibold text-glamora-charcoal">SKU:</span> <span className="text-gray-400 font-mono">{product.sku}</span></div>
               </div>
 

@@ -12,6 +12,7 @@ import { ComboDetailModal } from './components/ComboDetailModal';
 import { ProductDetailModal } from './components/ProductDetailModal';
 import { CollegeGirlEdit } from './components/CollegeGirlEdit';
 import { IndianWearSection } from './components/IndianWearSection';
+import { WesternWearSection } from './components/WesternWearSection';
 import { AccessoriesSection } from './components/AccessoriesSection';
 import { ReviewsWall } from './components/ReviewsWall';
 import { InstagramFeed } from './components/InstagramFeed';
@@ -515,7 +516,16 @@ export const App: React.FC = () => {
               onViewAllCollege={() => handleSelectCategory('combos')}
             />
 
-            {/* 4. RAJASTHANI 18K MINAKARI & OXIDISED JHUMKAS SECTION */}
+            {/* 4. WESTERN WEAR BOUTIQUE EDIT (TOPS, SWEATSHIRTS & JEANS) */}
+            <WesternWearSection
+              products={products}
+              wishlistIds={wishlistIds}
+              onToggleWishlist={handleToggleWishlist}
+              onSelectProduct={(p) => setSelectedProduct(p)}
+              onQuickAdd={handleQuickAddProduct}
+            />
+
+            {/* 5. RAJASTHANI 18K MINAKARI & OXIDISED JHUMKAS SECTION */}
             <AccessoriesSection
               products={products}
               wishlistIds={wishlistIds}

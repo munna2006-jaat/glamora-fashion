@@ -2108,19 +2108,54 @@ Pure Cotton Mulmul & Sanganeri Handblock Kurtis starting at just ₹499! 🌸
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <div>
                   <label className="block font-semibold text-gray-600 mb-1">Category</label>
                   <select
                     value={editingProduct.category}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value as any })}
+                    onChange={(e) => {
+                      const newCat = e.target.value as any;
+                      let defaultSub = editingProduct.subcategory;
+                      let defaultFabric = editingProduct.fabric;
+                      let defaultSizes = editingProduct.sizes;
+                      if (newCat === 'accessories') {
+                        defaultSub = 'Jewelry';
+                        defaultFabric = '18K Gold Plated Alloy / Kundan';
+                        defaultSizes = ['Free Size'];
+                      } else if (newCat === 'western') {
+                        defaultSub = 'Tops';
+                        defaultFabric = 'Premium Quality Blend';
+                        defaultSizes = ['XS', 'S', 'M', 'L', 'XL'];
+                      } else if (newCat === 'indian') {
+                        defaultSub = 'Kurtis';
+                        defaultFabric = '100% Breathable Jaipur Cotton';
+                        defaultSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+                      }
+                      setEditingProduct({
+                        ...editingProduct,
+                        category: newCat,
+                        subcategory: defaultSub,
+                        fabric: defaultFabric,
+                        sizes: defaultSizes
+                      });
+                    }}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 capitalize"
                   >
                     <option value="indian">Indian Wear / Kurtis</option>
-                    <option value="western">Western / Jeans</option>
+                    <option value="western">Western / Tops & Jeans</option>
                     <option value="accessories">Jewelry & Accessories</option>
                     <option value="footwear">Footwear</option>
                   </select>
+                </div>
+                <div>
+                  <label className="block font-semibold text-gray-600 mb-1">Subcategory</label>
+                  <input
+                    type="text"
+                    value={editingProduct.subcategory}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, subcategory: e.target.value })}
+                    placeholder="e.g. Jewelry, Handbags, Tops, Jeans, Kurtis"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5"
+                  />
                 </div>
                 <div>
                   <label className="block font-semibold text-gray-600 mb-1">Inventory Stock Units</label>

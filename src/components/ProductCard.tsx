@@ -1,6 +1,7 @@
 import React from 'react';
 import { Product, CartItem } from '../types';
 import { Heart, ShoppingBag, Eye, Star } from 'lucide-react';
+import { getProductBadge, isJewelryProduct, isBagProduct } from '../utils/productUtils';
 
 interface ProductCardProps {
   product: Product;
@@ -91,7 +92,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       <div className="p-4 flex-1 flex flex-col justify-between">
         <div>
           <div className="flex items-center justify-between text-[11px] text-gray-400 mb-1">
-            <span className="uppercase tracking-wider font-semibold">{product.subcategory}</span>
+            <span className="uppercase tracking-wider font-semibold text-glamora-rose/90">{getProductBadge(product)}</span>
             <span className="flex items-center gap-1 text-amber-500 font-bold">
               <Star className="w-3 h-3 fill-current" />
               <span>{product.rating}</span>
@@ -107,18 +108,34 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </h3>
 
           <p className="text-[11px] text-gray-500 font-sans mt-1 line-clamp-1">
-            {product.fabric}
+            {isJewelryProduct(product)
+              ? (product.fabric && !product.fabric.includes('Cotton') ? product.fabric : 'Handcrafted 18K Gold Plated Alloy')
+              : isBagProduct(product)
+              ? (product.fabric && !product.fabric.includes('Cotton') ? product.fabric : 'Premium PU Leather & Canvas')
+              : product.fabric}
           </p>
 
           {/* Sizes preview */}
           <div className="flex items-center gap-1 mt-2">
-            {product.sizes.slice(0, 4).map((s) => (
-              <span key={s} className="text-[10px] bg-glamora-cream text-gray-600 px-1.5 py-0.5 rounded border border-glamora-blush/40 font-mono">
-                {s}
+            {isJewelryProduct(product) ? (
+              <span className="text-[10px] bg-glamora-cream text-gray-600 px-2 py-0.5 rounded border border-glamora-blush/40 font-mono font-medium">
+                Free Size
               </span>
-            ))}
-            {product.sizes.length > 4 && (
-              <span className="text-[10px] text-gray-400">+{product.sizes.length - 4}</span>
+            ) : isBagProduct(product) ? (
+              <span className="text-[10px] bg-glamora-cream text-gray-600 px-2 py-0.5 rounded border border-glamora-blush/40 font-mono font-medium">
+                One Size
+              </span>
+            ) : (
+              <>
+                {product.sizes.slice(0, 4).map((s) => (
+                  <span key={s} className="text-[10px] bg-glamora-cream text-gray-600 px-1.5 py-0.5 rounded border border-glamora-blush/40 font-mono">
+                    {s}
+                  </span>
+                ))}
+                {product.sizes.length > 4 && (
+                  <span className="text-[10px] text-gray-400">+{product.sizes.length - 4}</span>
+                )}
+              </>
             )}
           </div>
         </div>
