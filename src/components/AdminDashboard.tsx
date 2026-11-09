@@ -33,6 +33,7 @@ import {
   Copy,
   Download
 } from 'lucide-react';
+import { optimizeMultipleImages, optimizeImageFile } from '../utils/imageOptimizer';
 
 interface AdminDashboardProps {
   isOpen: boolean;
@@ -85,6 +86,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [siteDomain, setSiteDomain] = useState(settings?.siteDomain || 'glamora.living');
   const [copiedAdField, setCopiedAdField] = useState('');
   const [newProductImageUrl, setNewProductImageUrl] = useState('');
+  const [isSavingProduct, setIsSavingProduct] = useState(false);
+  const [productSaveError, setProductSaveError] = useState('');
+  const [isOptimizingImages, setIsOptimizingImages] = useState(false);
+  const [optimizationProgress, setOptimizationProgress] = useState('');
 
   // Password & Security State
   const [currentPass, setCurrentPass] = useState('');
@@ -420,6 +425,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingProduct) return;
+    setIsSavingProduct(true);
+    setProductSaveError('');
 
     try {
       const url = isNewProduct ? '/api/admin/products' : `/api/admin/products/${editingProduct.id}`;
@@ -431,16 +438,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         body: JSON.stringify(editingProduct)
       });
 
-      if (res.ok) {
-        setSaveMessage('Product catalog saved successfully!');
-        setEditingProduct(null);
-        setIsNewProduct(false);
-        onRefreshData();
-        loadStatsAndOrders();
-        setTimeout(() => setSaveMessage(''), 3000);
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `Server responded with error status ${res.status}`);
       }
-    } catch (err) {
-      console.error(err);
+
+      setSaveMessage('Product catalog saved successfully!');
+      setEditingProduct(null);
+      setIsNewProduct(false);
+      onRefreshData();
+      loadStatsAndOrders();
+      setTimeout(() => setSaveMessage(''), 3000);
+    } catch (err: any) {
+      console.error('Error saving product:', err);
+      setProductSaveError(err.message || 'Failed to save product. Please check your network connection.');
+    } finally {
+      setIsSavingProduct(false);
     }
   };
 
@@ -476,34 +489,31 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
-  // Handle Product Multiple Image Upload
-  const handleProductMultipleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle Product Multiple Image Upload with Automatic Canvas Compression
+  const handleProductMultipleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0 || !editingProduct) return;
 
-    const fileList = Array.from(files);
-    let loadedCount = 0;
-    const newImages: string[] = [];
+    try {
+      setIsOptimizingImages(true);
+      setOptimizationProgress(`Compressing ${files.length} photo(s)...`);
 
-    fileList.forEach((file) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          newImages.push(reader.result);
-        }
-        loadedCount++;
-        if (loadedCount === fileList.length) {
-          const currentImgs = editingProduct.images || [];
-          setEditingProduct({
-            ...editingProduct,
-            images: [...currentImgs, ...newImages]
-          });
-        }
-      };
-      reader.readAsDataURL(file);
-    });
+      const optimized = await optimizeMultipleImages(files, (done, total) => {
+        setOptimizationProgress(`Compressed ${done} of ${total} photo(s)...`);
+      });
 
-    e.target.value = '';
+      const currentImgs = editingProduct.images || [];
+      setEditingProduct({
+        ...editingProduct,
+        images: [...currentImgs, ...optimized]
+      });
+    } catch (err) {
+      console.error('Image optimization error:', err);
+    } finally {
+      setIsOptimizingImages(false);
+      setOptimizationProgress('');
+      e.target.value = '';
+    }
   };
 
   // Remove individual product image
@@ -538,20 +548,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setNewProductImageUrl('');
   };
 
-  // Handle Combo Image Upload
-  const handleComboImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle Combo Image Upload with Canvas Compression
+  const handleComboImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !editingCombo) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      if (typeof reader.result === 'string') {
-        setEditingCombo({
-          ...editingCombo,
-          image: reader.result
-        });
-      }
-    };
-    reader.readAsDataURL(file);
+    try {
+      const optimized = await optimizeImageFile(file);
+      setEditingCombo({
+        ...editingCombo,
+        image: optimized
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      e.target.value = '';
+    }
   };
 
   // Handle Combo Save
@@ -2124,6 +2135,14 @@ Pure Cotton Mulmul & Sanganeri Handblock Kurtis starting at just ₹499! 🌸
                     </label>
                   </div>
 
+                  {/* Optimization Progress Alert */}
+                  {isOptimizingImages && (
+                    <div className="p-2.5 bg-blue-50 border border-blue-200 rounded-xl text-blue-700 text-xs flex items-center gap-2 font-semibold animate-pulse">
+                      <RefreshCw className="w-4 h-4 animate-spin text-blue-600 flex-shrink-0" />
+                      <span>{optimizationProgress || 'Compressing & optimizing photos for instant upload...'}</span>
+                    </div>
+                  )}
+
                   {/* Direct Image URL input */}
                   <div className="flex gap-2 pt-2 border-t border-gray-200/70">
                     <input
@@ -2216,20 +2235,49 @@ Pure Cotton Mulmul & Sanganeri Handblock Kurtis starting at just ₹499! 🌸
                 />
               </div>
 
+              {productSaveError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs flex items-center gap-2 font-medium">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  <span>{productSaveError}</span>
+                </div>
+              )}
+
               <div className="pt-3 flex gap-2">
                 <button
                   type="button"
-                  onClick={() => setEditingProduct(null)}
+                  onClick={() => {
+                    setEditingProduct(null);
+                    setProductSaveError('');
+                  }}
                   className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl font-semibold transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-glamora-charcoal hover:bg-glamora-rose text-white py-3 rounded-xl font-bold transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+                  disabled={isSavingProduct || isOptimizingImages}
+                  className={`flex-1 text-white py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 ${
+                    isSavingProduct || isOptimizingImages
+                      ? 'bg-gray-400 cursor-not-allowed opacity-80'
+                      : 'bg-glamora-charcoal hover:bg-glamora-rose shadow-md cursor-pointer'
+                  }`}
                 >
-                  <Save className="w-4 h-4" />
-                  <span>Save to Catalog</span>
+                  {isSavingProduct ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>Saving Catalog...</span>
+                    </>
+                  ) : isOptimizingImages ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>Optimizing Photos...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      <span>Save to Catalog</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>
