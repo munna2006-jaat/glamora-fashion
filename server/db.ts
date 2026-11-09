@@ -27,50 +27,7 @@ const defaultAdmin = {
   role: 'superadmin'
 };
 
-const initialOrders: Order[] = [
-  {
-    id: 'ord-1001',
-    orderNumber: 'GLM-2026-9812',
-    trackingId: 'TRK-GLM-88902',
-    createdAt: new Date(Date.now() - 3600000 * 24 * 2).toISOString(),
-    items: [
-      {
-        id: 'item-1',
-        comboId: 'combo-1',
-        name: 'DESI DARLING COMBO',
-        price: 1999,
-        quantity: 1,
-        image: '',
-        isCombo: true,
-        selectedComboSizes: { 'Gulabi Rose Handblock Tiered Anarkali Kurti': 'M' }
-      }
-    ],
-    subtotal: 1999,
-    discount: 200,
-    couponCode: 'GLAMFIRST',
-    shipping: 0,
-    giftWrap: true,
-    total: 1799,
-    paymentMethod: 'upi',
-    paymentStatus: 'paid',
-    orderStatus: 'dispatched',
-    shippingAddress: {
-      id: 'addr-1',
-      name: 'Aditi Varma',
-      phone: '+91 98765 43210',
-      street: 'Flat 402, Sunshine Towers, Koramangala',
-      city: 'Bengaluru',
-      state: 'Karnataka',
-      pincode: '560034'
-    },
-    estimatedDelivery: 'Tomorrow, 5:00 PM',
-    statusUpdates: [
-      { status: 'Order Placed', time: '2 days ago', desc: 'Order verified and sent to packaging unit' },
-      { status: 'Quality Checked', time: 'Yesterday', desc: 'All combo items inspected & packed in signature blush box' },
-      { status: 'Dispatched', time: 'Today, 9:30 AM', desc: 'Handed over to BlueDart Express. Tracking #BLU-992147' }
-    ]
-  }
-];
+const initialOrders: Order[] = [];
 
 class StorageEngine {
   private data: DatabaseSchema;
@@ -102,7 +59,7 @@ class StorageEngine {
           name: 'Aditi Varma',
           email: 'aditi@example.com',
           phone: '+91 98765 43210',
-          addresses: [initialOrders[0].shippingAddress]
+          addresses: []
         }
       ],
       admin: defaultAdmin
@@ -230,6 +187,16 @@ class StorageEngine {
       return order;
     }
     return undefined;
+  }
+
+  deleteOrder(orderId: string): boolean {
+    const initialLen = this.data.orders.length;
+    this.data.orders = this.data.orders.filter(o => o.id !== orderId && o.orderNumber !== orderId);
+    if (this.data.orders.length !== initialLen) {
+      this.save();
+      return true;
+    }
+    return false;
   }
 
   // Coupons

@@ -31,7 +31,8 @@ import {
   Target,
   ExternalLink,
   Copy,
-  Download
+  Download,
+  Package
 } from 'lucide-react';
 import { optimizeMultipleImages, optimizeImageFile } from '../utils/imageOptimizer';
 
@@ -482,6 +483,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         body: JSON.stringify({ status })
       });
       if (res.ok) {
+        loadStatsAndOrders();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // Handle Delete Order
+  const handleDeleteOrder = async (orderId: string, orderNumber: string) => {
+    if (!window.confirm(`Kya aap order ${orderNumber} ko delete karna chahte hain?`)) return;
+    try {
+      const res = await fetch(`/api/orders/${orderId}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        setOrders(prev => prev.filter(o => o.id !== orderId && o.orderNumber !== orderId));
         loadStatsAndOrders();
       }
     } catch (e) {
@@ -1272,34 +1289,54 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <th className="p-3">Total Amount</th>
                           <th className="p-3">Status</th>
                           <th className="p-3">Update Status</th>
+                          <th className="p-3 text-right">Action</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
-                        {orders.slice(0, 5).map(o => (
-                          <tr key={o.id} className="hover:bg-gray-50/50">
-                            <td className="p-3 font-mono font-bold text-glamora-charcoal">{o.orderNumber}</td>
-                            <td className="p-3 font-medium text-gray-700">{o.shippingAddress.name} ({o.shippingAddress.city})</td>
-                            <td className="p-3 font-bold text-glamora-charcoal">₹{o.total.toLocaleString('en-IN')}</td>
-                            <td className="p-3">
-                              <span className="capitalize px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700">
-                                {o.orderStatus.replace('_', ' ')}
-                              </span>
-                            </td>
-                            <td className="p-3">
-                              <select
-                                value={o.orderStatus}
-                                onChange={(e) => handleUpdateOrderStatus(o.id, e.target.value as any)}
-                                className="bg-gray-100 border border-gray-200 rounded-lg p-1 text-xs font-medium"
-                              >
-                                <option value="placed">Placed</option>
-                                <option value="confirmed">Confirmed</option>
-                                <option value="dispatched">Dispatched</option>
-                                <option value="out_for_delivery">Out For Delivery</option>
-                                <option value="delivered">Delivered</option>
-                              </select>
+                        {orders.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="p-8 text-center text-gray-400">
+                              <Package className="w-8 h-8 mx-auto mb-2 opacity-30 text-gray-400" />
+                              Abhi koi order nahi hai. Naye customer orders aane par yahan dikhenge!
                             </td>
                           </tr>
-                        ))}
+                        ) : (
+                          orders.slice(0, 5).map(o => (
+                            <tr key={o.id} className="hover:bg-gray-50/50">
+                              <td className="p-3 font-mono font-bold text-glamora-charcoal">{o.orderNumber}</td>
+                              <td className="p-3 font-medium text-gray-700">{o.shippingAddress?.name || 'Customer'} ({o.shippingAddress?.city || 'India'})</td>
+                              <td className="p-3 font-bold text-glamora-charcoal">₹{o.total.toLocaleString('en-IN')}</td>
+                              <td className="p-3">
+                                <span className="capitalize px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700">
+                                  {o.orderStatus.replace('_', ' ')}
+                                </span>
+                              </td>
+                              <td className="p-3">
+                                <select
+                                  value={o.orderStatus}
+                                  onChange={(e) => handleUpdateOrderStatus(o.id, e.target.value as any)}
+                                  className="bg-gray-100 border border-gray-200 rounded-lg p-1 text-xs font-medium"
+                                >
+                                  <option value="placed">Placed</option>
+                                  <option value="confirmed">Confirmed</option>
+                                  <option value="dispatched">Dispatched</option>
+                                  <option value="out_for_delivery">Out For Delivery</option>
+                                  <option value="delivered">Delivered</option>
+                                </select>
+                              </td>
+                              <td className="p-3 text-right">
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteOrder(o.id, o.orderNumber)}
+                                  title="Delete Order"
+                                  className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition inline-flex items-center"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -1501,50 +1538,68 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             {/* TAB: ORDERS FULFILLMENT */}
             {activeTab === 'orders' && (
               <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 space-y-4">
-                <h3 className="font-serif text-lg font-bold text-glamora-charcoal">
-                  Order Fulfillment Pipeline ({orders.length})
-                </h3>
-
-                <div className="space-y-3">
-                  {orders.map(o => (
-                    <div key={o.id} className="p-4 rounded-2xl bg-gray-50 border border-gray-200 space-y-3">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-2">
-                        <div>
-                          <span className="font-mono font-bold text-sm text-glamora-charcoal">{o.orderNumber}</span>
-                          <span className="ml-2 font-mono text-gray-400">Tracking: {o.trackingId}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm text-glamora-charcoal">₹{o.total.toLocaleString('en-IN')}</span>
-                          <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
-                            {o.paymentMethod} • {o.paymentStatus}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Customer & Address */}
-                      <div className="text-xs text-gray-600 bg-white p-3 rounded-xl border border-gray-100">
-                        <div className="font-bold text-glamora-charcoal">{o.shippingAddress.name} ({o.shippingAddress.phone})</div>
-                        <div>{o.shippingAddress.street}, {o.shippingAddress.city}, {o.shippingAddress.state} - {o.shippingAddress.pincode}</div>
-                      </div>
-
-                      {/* Status updater */}
-                      <div className="flex items-center justify-between pt-2 border-t border-gray-200 text-xs">
-                        <span className="text-gray-400">Current Order Status:</span>
-                        <select
-                          value={o.orderStatus}
-                          onChange={(e) => handleUpdateOrderStatus(o.id, e.target.value as any)}
-                          className="bg-white border border-gray-300 rounded-xl px-3 py-1.5 font-bold text-glamora-charcoal focus:ring-1 focus:ring-glamora-rose"
-                        >
-                          <option value="placed">Placed (Pending Inspection)</option>
-                          <option value="confirmed">Confirmed & Packaging</option>
-                          <option value="dispatched">Dispatched to Courier</option>
-                          <option value="out_for_delivery">Out for Delivery</option>
-                          <option value="delivered">Delivered to Customer</option>
-                        </select>
-                      </div>
-                    </div>
-                  ))}
+                <div className="flex items-center justify-between">
+                  <h3 className="font-serif text-lg font-bold text-glamora-charcoal">
+                    Order Fulfillment Pipeline ({orders.length})
+                  </h3>
                 </div>
+
+                {orders.length === 0 ? (
+                  <div className="p-12 text-center text-gray-400 bg-gray-50 rounded-2xl border border-gray-100">
+                    <Package className="w-10 h-10 mx-auto mb-2 opacity-30 text-gray-400" />
+                    <p className="font-semibold text-sm text-gray-600">Koi active customer orders nahi hain.</p>
+                    <p className="text-xs text-gray-400 mt-1">Jab customer order place karega, wo yahan live dikhai dega!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {orders.map(o => (
+                      <div key={o.id} className="p-4 rounded-2xl bg-gray-50 border border-gray-200 space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-2">
+                          <div>
+                            <span className="font-mono font-bold text-sm text-glamora-charcoal">{o.orderNumber}</span>
+                            <span className="ml-2 font-mono text-gray-400">Tracking: {o.trackingId}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-sm text-glamora-charcoal">₹{o.total.toLocaleString('en-IN')}</span>
+                            <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+                              {o.paymentMethod} • {o.paymentStatus}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteOrder(o.id, o.orderNumber)}
+                              title="Delete Order"
+                              className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition ml-1"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Customer & Address */}
+                        <div className="text-xs text-gray-600 bg-white p-3 rounded-xl border border-gray-100">
+                          <div className="font-bold text-glamora-charcoal">{o.shippingAddress?.name || 'Customer'} ({o.shippingAddress?.phone || 'N/A'})</div>
+                          <div>{o.shippingAddress?.street}, {o.shippingAddress?.city}, {o.shippingAddress?.state} - {o.shippingAddress?.pincode}</div>
+                        </div>
+
+                        {/* Status updater */}
+                        <div className="flex items-center justify-between pt-2 border-t border-gray-200 text-xs">
+                          <span className="text-gray-400">Current Order Status:</span>
+                          <select
+                            value={o.orderStatus}
+                            onChange={(e) => handleUpdateOrderStatus(o.id, e.target.value as any)}
+                            className="bg-white border border-gray-300 rounded-xl px-3 py-1.5 font-bold text-glamora-charcoal focus:ring-1 focus:ring-glamora-rose"
+                          >
+                            <option value="placed">Placed (Pending Inspection)</option>
+                            <option value="confirmed">Confirmed & Packaging</option>
+                            <option value="dispatched">Dispatched to Courier</option>
+                            <option value="out_for_delivery">Out for Delivery</option>
+                            <option value="delivered">Delivered to Customer</option>
+                          </select>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 

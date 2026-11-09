@@ -200,6 +200,12 @@ app.patch('/api/orders/:id/status', (req, res) => {
   res.json(updated);
 });
 
+app.delete('/api/orders/:id', (req, res) => {
+  const deleted = db.deleteOrder(req.params.id);
+  if (!deleted) return res.status(404).json({ error: 'Order not found' });
+  res.json({ success: true, message: 'Order deleted successfully' });
+});
+
 // Coupons
 app.get('/api/coupons', (req, res) => {
   res.json(db.getCoupons());

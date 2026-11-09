@@ -541,45 +541,7 @@ function loadDatabase() {
   const fresh = {
     products: initialProducts,
     combos: initialCombos,
-    orders: [
-      {
-        id: 'ord-1001',
-        orderNumber: 'GLM-2026-9812',
-        trackingId: 'TRK-GLM-88902',
-        createdAt: new Date().toISOString(),
-        items: [
-          {
-            id: 'item-1',
-            comboId: 'combo-kurti-jeans',
-            name: 'KURTI + BAGGY JEANS COMBO',
-            price: 699,
-            quantity: 1,
-            image: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=600&q=80',
-            isCombo: true,
-            selectedComboSizes: { 'Bandhani Mirror-Work Short Flared Kurti': 'M', 'High-Waisted Wide Leg Baggy Denim Jeans': '28' }
-          }
-        ],
-        subtotal: 699,
-        discount: 70,
-        couponCode: 'GLAM499',
-        shipping: 0,
-        giftWrap: false,
-        total: 629,
-        paymentMethod: 'upi',
-        paymentStatus: 'paid',
-        orderStatus: 'dispatched',
-        shippingAddress: {
-          id: 'addr-1',
-          name: 'Kavita Rathore',
-          phone: '+91 98765 43210',
-          street: 'C-Scheme, Near Statue Circle',
-          city: 'Jaipur',
-          state: 'Rajasthan',
-          pincode: '302001'
-        },
-        estimatedDelivery: 'Tomorrow, 4:00 PM'
-      }
-    ],
+    orders: [],
     reviews: initialReviews,
     coupons: initialCoupons,
     settings: initialSettings,
@@ -878,6 +840,16 @@ app.patch('/api/orders/:id/status', (req, res) => {
     o.orderStatus = req.body.status;
     saveDB();
     return res.json(o);
+  }
+  res.status(404).json({ error: 'Order not found' });
+});
+
+app.delete('/api/orders/:id', (req, res) => {
+  const idx = db.orders.findIndex(x => x.id === req.params.id || x.orderNumber === req.params.id);
+  if (idx !== -1) {
+    const deleted = db.orders.splice(idx, 1);
+    saveDB();
+    return res.json({ success: true, deleted: deleted[0] });
   }
   res.status(404).json({ error: 'Order not found' });
 });
