@@ -1,18 +1,66 @@
-import React from 'react';
+import React, { useMemo } from 'react';
+import { Product, Combo } from '../types';
 
 interface StoryHighlightsProps {
-  onSelectCategory: (cat: string) => void;
+  products?: Product[];
+  combos?: Combo[];
+  onSelectProduct?: (p: Product) => void;
+  onSelectCombo?: (c: Combo) => void;
+  onSelectCategory?: (cat: string) => void;
 }
 
-export const StoryHighlights: React.FC<StoryHighlightsProps> = ({ onSelectCategory }) => {
-  const stories = [
-    { id: 'combos', label: '🔥 ₹499 Combos', img: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=300&q=80', badge: 'Hot' },
-    { id: 'kurti_jeans', label: '👖 Kurti + Jeans', img: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=300&q=80', badge: '₹699' },
-    { id: 'indian', label: '🌸 Sanganeri Kurti', img: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=300&q=80', badge: '₹499' },
-    { id: 'accessories', label: '✨ Minakari Jhumkas', img: 'https://images.unsplash.com/photo-1630019852942-f89202989a59?auto=format&fit=crop&w=300&q=80' },
-    { id: 'indian', label: '👑 Leheriya Flared', img: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=300&q=80' },
-    { id: 'accessories', label: '🪩 Oxidised Silver', img: 'https://images.unsplash.com/photo-1611591475155-426ea7b18fc9?auto=format&fit=crop&w=300&q=80' },
-  ];
+export const StoryHighlights: React.FC<StoryHighlightsProps> = ({
+  products = [],
+  combos = [],
+  onSelectProduct,
+  onSelectCombo,
+  onSelectCategory,
+}) => {
+  const stories = useMemo(() => {
+    const list: Array<{
+      id: string;
+      label: string;
+      img: string;
+      badge?: string;
+      onClick: () => void;
+    }> = [];
+
+    // Combos first
+    combos.forEach((c) => {
+      if (c.image) {
+        list.push({
+          id: c.id,
+          label: c.title.length > 18 ? c.title.slice(0, 16) + '...' : c.title,
+          img: c.image,
+          badge: `₹${c.comboPrice}`,
+          onClick: () => {
+            if (onSelectCombo) onSelectCombo(c);
+            else if (onSelectCategory) onSelectCategory('combos');
+          },
+        });
+      }
+    });
+
+    // Products next
+    products.forEach((p) => {
+      if (p.images && p.images[0]) {
+        list.push({
+          id: p.id,
+          label: p.name.length > 18 ? p.name.slice(0, 16) + '...' : p.name,
+          img: p.images[0],
+          badge: `₹${p.price}`,
+          onClick: () => {
+            if (onSelectProduct) onSelectProduct(p);
+            else if (onSelectCategory) onSelectCategory('all');
+          },
+        });
+      }
+    });
+
+    return list;
+  }, [combos, products, onSelectCombo, onSelectProduct, onSelectCategory]);
+
+  if (stories.length === 0) return null;
 
   return (
     <section className="py-5 sm:py-8 bg-white border-b border-glamora-blush/40 w-full max-w-full overflow-hidden">
@@ -21,7 +69,7 @@ export const StoryHighlights: React.FC<StoryHighlightsProps> = ({ onSelectCatego
           {stories.map((story) => (
             <button
               key={story.id}
-              onClick={() => onSelectCategory(story.id)}
+              onClick={story.onClick}
               className="flex flex-col items-center group cursor-pointer flex-shrink-0"
             >
               <div className="relative p-1 rounded-full bg-gradient-to-tr from-glamora-gold via-glamora-rose to-glamora-blush group-hover:scale-105 transition-transform duration-300">
@@ -38,7 +86,7 @@ export const StoryHighlights: React.FC<StoryHighlightsProps> = ({ onSelectCatego
                   </span>
                 )}
               </div>
-              <span className="mt-2 text-[11px] sm:text-xs font-medium text-glamora-charcoal group-hover:text-glamora-rose transition tracking-tight">
+              <span className="mt-2 text-[11px] sm:text-xs font-medium text-glamora-charcoal group-hover:text-glamora-rose transition tracking-tight max-w-[80px] sm:max-w-[100px] truncate">
                 {story.label}
               </span>
             </button>

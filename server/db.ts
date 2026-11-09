@@ -40,7 +40,7 @@ const initialOrders: Order[] = [
         name: 'DESI DARLING COMBO',
         price: 1999,
         quantity: 1,
-        image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80',
+        image: '',
         isCombo: true,
         selectedComboSizes: { 'Gulabi Rose Handblock Tiered Anarkali Kurti': 'M' }
       }

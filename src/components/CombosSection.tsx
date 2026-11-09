@@ -15,6 +15,8 @@ export const CombosSection: React.FC<CombosSectionProps> = ({
   onAddToCart,
   onQuickBuy,
 }) => {
+  if (!combos || combos.length === 0) return null;
+
   return (
     <section id="combos-section" className="py-16 sm:py-24 bg-gradient-to-b from-glamora-cream via-white to-glamora-cream/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

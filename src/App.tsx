@@ -447,15 +447,25 @@ export const App: React.FC = () => {
         {/* VIEW 6: HOMEPAGE (EDITORIAL LUXURY COMMERCE) */}
         {currentView === 'home' && (
           <main className="w-full max-w-full overflow-x-hidden">
-            {/* Full-screen Editorial Hero Banner (Model clearly visible at top, text at bottom) */}
+            {/* Full-screen Editorial Hero Banner (Featuring User's Real Products & Combos) */}
             <HeroBanner
+              products={products}
+              combos={combos}
+              onSelectProduct={(p) => setSelectedProduct(p)}
+              onSelectCombo={(c) => setSelectedCombo(c)}
               onShopCombos={() => handleSelectCategory('combos')}
               onShopIndian={() => handleSelectCategory('indian')}
               onShopCollege={() => handleSelectCategory('kurti_jeans')}
             />
 
-            {/* Story Highlights Bar */}
-            <StoryHighlights onSelectCategory={handleSelectCategory} />
+            {/* Story Highlights Bar (Featuring User's Real Products & Combos) */}
+            <StoryHighlights
+              products={products}
+              combos={combos}
+              onSelectProduct={(p) => setSelectedProduct(p)}
+              onSelectCombo={(c) => setSelectedCombo(c)}
+              onSelectCategory={handleSelectCategory}
+            />
 
             {/* 1. CURATED COMBOS SECTION (SHOWN FIRST ON HOMEPAGE) */}
             <CombosSection
@@ -518,7 +528,11 @@ export const App: React.FC = () => {
             <ReviewsWall reviews={reviews} />
 
             {/* 6. INSTAGRAM LOOKBOOK FEED */}
-            <InstagramFeed onShopLook={() => handleSelectCategory('combos')} />
+            <InstagramFeed
+              products={products}
+              onSelectProduct={(p) => setSelectedProduct(p)}
+              onShopLook={() => handleSelectCategory('combos')}
+            />
 
             {/* Customer-Facing Footer */}
             <Footer

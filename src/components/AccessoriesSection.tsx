@@ -20,6 +20,8 @@ export const AccessoriesSection: React.FC<AccessoriesSectionProps> = ({
 }) => {
   const accProducts = products.filter(p => p.category === 'accessories' || p.category === 'footwear');
 
+  if (accProducts.length === 0) return null;
+
   return (
     <section id="accessories-section" className="py-16 sm:py-20 bg-white border-t border-glamora-blush/40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

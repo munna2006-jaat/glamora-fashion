@@ -1,57 +1,104 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ArrowRight, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Product, Combo } from '../types';
 
 interface HeroBannerProps {
+  products?: Product[];
+  combos?: Combo[];
+  onSelectProduct?: (p: Product) => void;
+  onSelectCombo?: (c: Combo) => void;
   onShopCombos: () => void;
-  onShopIndian: () => void;
-  onShopCollege: () => void;
+  onShopIndian?: () => void;
+  onShopCollege?: () => void;
 }
 
 export const HeroBanner: React.FC<HeroBannerProps> = ({
+  products = [],
+  combos = [],
+  onSelectProduct,
+  onSelectCombo,
   onShopCombos,
   onShopIndian,
   onShopCollege,
 }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  const slides = [
-    {
-      id: 1,
-      badge: '🔥 DHAMAKA SALE • KURTI + EARRINGS FROM ₹499',
-      headline: 'Authentic Rajasthani Kurtis & Matching Minakari Jhumkas',
-      subline: 'Pure Jaipur mulmul handblock floral kurtis matched with 18K gold plated Minakari Chandbali jhumkis. Complete set starting at just ₹499!',
-      ctaText: 'Shop Kurti Combos (₹499)',
-      action: onShopCombos,
-      secondaryCta: 'Explore Jaipuri Kurtis',
-      secondaryAction: onShopIndian,
-      image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1600&q=85',
-      imagePosition: 'object-[center_top] sm:object-center',
-    },
-    {
-      id: 2,
-      badge: '👖 VIRAL GEN-Z HIT • FLAT ₹699 COMBO',
-      headline: 'Short Kurti + High-Waist Baggy Denim Jeans Combo',
-      subline: 'The ultimate viral campus outfit! Pair authentic mirror-work Rajasthani short kurti with relaxed wide-leg denim jeans for only ₹699.',
-      ctaText: 'Get Kurti + Jeans @ ₹699',
-      action: onShopCollege,
-      secondaryCta: 'View All Combos',
-      secondaryAction: onShopCombos,
-      image: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=1600&q=85',
-      imagePosition: 'object-[center_top] sm:object-center',
-    },
-    {
-      id: 3,
-      badge: '🌸 JAIPUR SPECIAL • PURE COTTON AT ₹499',
-      headline: 'Sanganeri, Bagru & Leheriya Flared Anarkalis',
-      subline: 'Breathable summer-ready Rajasthani handblock kurtis crafted for college girls. Zero shoe-bite and 100% skin-friendly cotton.',
-      ctaText: 'Shop Kurtis @ ₹499',
-      action: onShopIndian,
-      secondaryCta: 'Shop Combos',
-      secondaryAction: onShopCombos,
-      image: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=1600&q=85',
-      imagePosition: 'object-[center_top] sm:object-center',
-    },
-  ];
+  // Generate slides dynamically from user's active products & combos
+  const slides = useMemo(() => {
+    const list: Array<{
+      id: string;
+      badge: string;
+      headline: string;
+      subline: string;
+      ctaText: string;
+      action: () => void;
+      secondaryCta?: string;
+      secondaryAction?: () => void;
+      image: string;
+      imagePosition?: string;
+    }> = [];
+
+    // 1. Featured Combos from user's store
+    (combos || []).forEach((c) => {
+      if (c.image) {
+        list.push({
+          id: c.id,
+          badge: `🔥 EXCLUSIVE COMBO DEAL • ₹${c.comboPrice.toLocaleString('en-IN')}`,
+          headline: c.title,
+          subline: c.tagline || c.description || 'Exclusive curated outfit combo. Verified student pricing & premium fabrics.',
+          ctaText: `Get Combo @ ₹${c.comboPrice}`,
+          action: () => {
+            if (onSelectCombo) onSelectCombo(c);
+            else onShopCombos();
+          },
+          secondaryCta: 'Explore Catalog',
+          secondaryAction: onShopCombos,
+          image: c.image,
+          imagePosition: 'object-center',
+        });
+      }
+    });
+
+    // 2. Featured Products from user's store
+    (products || []).forEach((p) => {
+      if (p.images && p.images[0]) {
+        list.push({
+          id: p.id,
+          badge: `✨ VIRAL HIT • ₹${p.price.toLocaleString('en-IN')}`,
+          headline: p.name,
+          subline: p.description || p.fabric || 'Crafted with premium breathable fabrics for effortless everyday & campus styling.',
+          ctaText: `Shop Now @ ₹${p.price}`,
+          action: () => {
+            if (onSelectProduct) onSelectProduct(p);
+            else onShopCombos();
+          },
+          secondaryCta: 'View Details',
+          secondaryAction: () => {
+            if (onSelectProduct) onSelectProduct(p);
+            else onShopCombos();
+          },
+          image: p.images[0],
+          imagePosition: 'object-center',
+        });
+      }
+    });
+
+    // Fallback if completely empty
+    if (list.length === 0) {
+      list.push({
+        id: 'hero-empty',
+        badge: '🌸 GLAMORA LUXURY COLLECTION',
+        headline: 'Affordable Luxury Fashion',
+        subline: 'Curated outfits and styling designed for young women.',
+        ctaText: 'Explore Collection',
+        action: onShopCombos,
+        image: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900"><rect width="100%" height="100%" fill="%23292329"/><text x="50%" y="50%" fill="%23D98BA5" font-size="44" font-family="serif" text-anchor="middle">GLAMORA FASHION</text></svg>',
+        imagePosition: 'object-center',
+      });
+    }
+
+    return list.slice(0, 5);
+  }, [combos, products, onSelectCombo, onSelectProduct, onShopCombos]);
 
   useEffect(() => {
     const timer = setInterval(() => {

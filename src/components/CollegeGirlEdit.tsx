@@ -22,6 +22,8 @@ export const CollegeGirlEdit: React.FC<CollegeGirlEditProps> = ({
 }) => {
   const collegeProducts = products.filter(p => p.isCollegeGirlEdit || p.price <= 1499).slice(0, 4);
 
+  if (collegeProducts.length === 0) return null;
+
   return (
     <section className="py-16 sm:py-20 bg-glamora-cream/50 border-y border-glamora-blush/40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

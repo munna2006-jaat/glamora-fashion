@@ -95,3 +95,4 @@ export const optimizeMultipleImages = async (
 
   return results.filter(Boolean);
 };
+

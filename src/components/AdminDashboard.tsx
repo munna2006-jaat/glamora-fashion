@@ -1433,24 +1433,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         tagline: '',
                         description: '',
                         badge: 'SPECIAL COMBO',
-                        image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80',
-                        items: [
-                          {
-                            productId: 'item-1',
-                            name: 'Rajasthani Handblock Kurti',
-                            category: 'Kurti',
-                            individualPrice: 499,
-                            image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80',
-                            availableSizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL']
-                          },
-                          {
-                            productId: 'item-2',
-                            name: '18K Minakari Chandbali Jhumka',
-                            category: 'Accessory',
-                            individualPrice: 399,
-                            image: 'https://images.unsplash.com/photo-1630019852942-f89202989a59?auto=format&fit=crop&w=600&q=80'
-                          }
-                        ],
+                        image: '',
+                        items: [],
                         comboPrice: 499,
                         originalTotal: 898,
                         savings: 399,
